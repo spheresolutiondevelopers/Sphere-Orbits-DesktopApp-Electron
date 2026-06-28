@@ -1,0 +1,29 @@
+import { z } from 'zod';
+
+export const AppointmentSchema = z.object({
+  appointmentID: z.string().uuid(),
+  userID: z.string().uuid(),
+  title: z.string().min(1).max(255),
+  description: z.string().max(4000).optional().nullable(),
+  appointmentType: z.enum(['general', 'doctor', 'business', 'personal']).default('general'),
+  startDateTime: z.string().datetime({ offset: true }),
+  endDateTime: z.string().datetime({ offset: true }),
+  allDayEvent: z.boolean().default(false),
+  location: z.string().max(500).optional().nullable(),
+  isVirtual: z.boolean().default(false),
+  meetingLink: z.string().url().max(500).optional().nullable(),
+  meetingPlatform: z.string().max(50).optional().nullable(),
+  status: z.enum(['scheduled', 'confirmed', 'cancelled', 'completed', 'rescheduled']).default('scheduled'),
+  reminderMinutesBefore: z.number().int().min(0).max(1440).default(15),
+  isRecurring: z.boolean().default(false),
+  recurrencePattern: z.string().max(100).optional().nullable(),
+  calendarColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).default('#2196F3'),
+  externalEventID: z.string().max(255).optional().nullable(),
+  externalSyncStatus: z.enum(['not_synced', 'synced', 'failed']).default('not_synced'),
+  notes: z.string().max(4000).optional().nullable(),
+  isDeleted: z.boolean().default(false),
+  createdAt: z.string().datetime({ offset: true }),
+  updatedAt: z.string().datetime({ offset: true }),
+});
+
+export type Appointment = z.infer<typeof AppointmentSchema>;

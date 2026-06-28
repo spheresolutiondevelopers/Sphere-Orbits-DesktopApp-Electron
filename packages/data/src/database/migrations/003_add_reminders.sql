@@ -1,0 +1,27 @@
+-- 003_add_reminders.sql
+CREATE TABLE reminders (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  task_id TEXT,
+  appointment_id TEXT,
+  meeting_id TEXT,
+  event_id TEXT,
+  reminder_type TEXT NOT NULL CHECK(reminder_type IN ('task','appointment','general')),
+  title TEXT NOT NULL,
+  message TEXT,
+  reminder_datetime TEXT NOT NULL,
+  notify_via_email INTEGER DEFAULT 1,
+  notify_via_push INTEGER DEFAULT 1,
+  status TEXT DEFAULT 'pending' CHECK(status IN ('pending','triggered','sent','failed','cancelled')),
+  is_recurring INTEGER DEFAULT 0,
+  sent_at TEXT,
+  created_at TEXT DEFAULT (datetime('now')),
+  updated_at TEXT DEFAULT (datetime('now')),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE SET NULL,
+  FOREIGN KEY (appointment_id) REFERENCES appointments(id) ON DELETE SET NULL,
+  FOREIGN KEY (meeting_id) REFERENCES meetings(id) ON DELETE SET NULL,
+  FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE SET NULL,
+  CHECK(length(title) <= 255),
+  CHECK(length(message) <= 500)
+);

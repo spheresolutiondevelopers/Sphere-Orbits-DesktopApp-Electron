@@ -1,0 +1,59 @@
+// All IPC channel names
+export const IPC_CHANNELS = {
+  // Auth
+  AUTH_LOGIN: 'ipc:auth:login',
+  AUTH_LOGOUT: 'ipc:auth:logout',
+  AUTH_VALIDATE: 'ipc:auth:validate',
+
+  // Tasks
+  TASKS_GET: 'ipc:tasks:get',
+  TASKS_CREATE: 'ipc:tasks:create',
+  TASKS_UPDATE: 'ipc:tasks:update',
+  TASKS_DELETE: 'ipc:tasks:delete',
+  TASKS_COMPLETE: 'ipc:tasks:complete',
+
+  // Appointments
+  APPOINTMENTS_GET: 'ipc:appointments:get',
+  APPOINTMENTS_CREATE: 'ipc:appointments:create',
+  APPOINTMENTS_UPDATE: 'ipc:appointments:update',
+  APPOINTMENTS_DELETE: 'ipc:appointments:delete',
+
+  // Events
+  EVENTS_GET: 'ipc:events:get',
+  EVENTS_CREATE: 'ipc:events:create',
+  EVENTS_UPDATE: 'ipc:events:update',
+  EVENTS_DELETE: 'ipc:events:delete',
+
+  // Meetings
+  MEETINGS_GET: 'ipc:meetings:get',
+  MEETINGS_CREATE: 'ipc:meetings:create',
+  MEETINGS_UPDATE: 'ipc:meetings:update',
+  MEETINGS_DELETE: 'ipc:meetings:delete',
+
+  // Notes
+  NOTES_GET: 'ipc:notes:get',
+  NOTES_CREATE: 'ipc:notes:create',
+  NOTES_UPDATE: 'ipc:notes:update',
+  NOTES_DELETE: 'ipc:notes:delete',
+
+  // Calendar
+  CALENDAR_SYNC: 'ipc:calendar:sync',
+  CALENDAR_GET_EVENTS: 'ipc:calendar:getEvents',
+
+  // Chat
+  CHAT_SEND: 'ipc:chat:send',
+  CHAT_GET_MESSAGES: 'ipc:chat:getMessages',
+  CHAT_OBSERVE: 'ipc:chat:observe',
+
+  // Analytics
+  ANALYTICS_GENERATE: 'ipc:analytics:generate',
+  ANALYTICS_GET_SCORE: 'ipc:analytics:getScore',
+
+  // Settings
+  SETTINGS_GET: 'ipc:settings:get',
+  SETTINGS_UPDATE: 'ipc:settings:update',
+
+  // Sync
+  SYNC_PUSH: 'ipc:sync:push',
+  SYNC_PULL: 'ipc:sync:pull',
+} as const;

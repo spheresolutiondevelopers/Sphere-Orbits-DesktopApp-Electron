@@ -1,0 +1,25 @@
+{
+  "name": "@sphere/data",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "jest",
+    "lint": "eslint src --ext .ts"
+  },
+  "dependencies": {
+    "@sphere/domain": "workspace:*",
+    "@sphere/shared": "workspace:*",
+    "better-sqlite3": "^9.4.3",
+    "axios": "^1.7.2",
+    "keytar": "^7.9.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.9",
+    "@types/keytar": "^4.0.4",
+    "@types/node": "^20.12.12",
+    "typescript": "^5.4.5"
+  }
+}
