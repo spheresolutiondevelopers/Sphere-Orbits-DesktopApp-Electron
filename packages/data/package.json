@@ -12,14 +12,14 @@
   "dependencies": {
     "@sphere/domain": "workspace:*",
     "@sphere/shared": "workspace:*",
-    "better-sqlite3": "^9.4.3",
     "axios": "^1.7.2",
+    "better-sqlite3": "^12.11.1",
     "keytar": "^7.9.0"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.9",
     "@types/keytar": "^4.0.4",
-    "@types/node": "^20.12.12",
-    "typescript": "^5.4.5"
+    "@types/node": "^26.0.1",
+    "typescript": "^6.0.3"
   }
 }

@@ -1,19 +1,11 @@
 {
-  "name": "@sphere/shared",
-  "version": "1.0.0",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
-    "test": "jest",
-    "lint": "eslint src --ext .ts"
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2020", "DOM"],
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "composite": true
   },
-  "dependencies": {
-    "zod": "^3.23.8"
-  },
-  "devDependencies": {
-    "@types/node": "^20.12.12",
-    "typescript": "^5.4.5"
-  }
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
 }

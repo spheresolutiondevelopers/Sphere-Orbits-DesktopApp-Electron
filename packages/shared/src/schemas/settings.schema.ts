@@ -29,7 +29,7 @@ export const SettingsSchema = z.object({
   shareUsageData: z.boolean().default(true),
   
   // User preferences (stored as JSONB on server, but we use a structured object)
-  preferences: z.record(z.any()).optional(),
+  preferences: z.record(z.string(), z.unknown()).optional(),
 });
 
 export type Settings = z.infer<typeof SettingsSchema>;

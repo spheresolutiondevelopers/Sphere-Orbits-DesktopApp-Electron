@@ -66,41 +66,36 @@ export class DefaultConflictStrategy<T> implements ConflictStrategy<T> {
  */
 export class ManualConflictStrategy<T> implements ConflictStrategy<T> {
   resolve(
-    local: T,
+    _local: T,   // <- renamed to _local
     remote: T,
     _localUpdatedAt: string,
     _remoteUpdatedAt: string
   ): ConflictResolution {
-    return { type: 'manual', serverEntity: remote, clientEntity: local };
+    return { type: 'manual', serverEntity: remote, clientEntity: _local };
   }
 
-  merge(local: T, remote: T): T {
+  merge(_local: T, remote: T): T {
     // Should never be called because we never resolve automatically.
     return remote;
   }
 }
-
 /**
  * Strategy that always merges fields, preferring newer timestamps per field.
  * This is a field‑level last‑write‑wins strategy.
  */
-export class FieldLevelMergeStrategy<T extends Record<string, any>>
-  implements ConflictStrategy<T>
-{
+export class FieldLevelMergeStrategy<T extends Record<string, any>> implements ConflictStrategy<T> {
   resolve(
     local: T,
     remote: T,
     _localUpdatedAt: string,
     _remoteUpdatedAt: string
   ): ConflictResolution {
-    // We always merge; conflict is resolved by merge()
     return { type: 'merge', serverEntity: remote, clientEntity: local };
   }
 
   merge(local: T, remote: T): T {
     const merged = { ...local };
-    for (const key of Object.keys(remote)) {
-      // If remote field is defined and not null, prefer it
+    for (const key of Object.keys(remote) as (keyof T)[]) {
       if (remote[key] !== undefined && remote[key] !== null) {
         merged[key] = remote[key];
       }
