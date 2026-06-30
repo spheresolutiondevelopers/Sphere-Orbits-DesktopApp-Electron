@@ -1,15 +1,13 @@
+import { randomUUID } from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
+import process from 'node:process';
 import { DatabaseClient } from '../database/DatabaseClient';
 import { AnalyticsData } from '@sphere/domain';
-import fs from 'fs';
-import path from 'path';
-import { v4 as uuidv4 } from 'uuid';
 
 export class ReportGenerator {
   constructor(private readonly db: DatabaseClient) {}
 
-  /**
-   * Generates a report file (PDF or CSV) and returns the file URL.
-   */
   async generate(
     userID: string,
     data: AnalyticsData,
@@ -30,14 +28,13 @@ export class ReportGenerator {
       await this.generatePDF(filePath, data, reportType);
     }
 
-    // Store report metadata in database
     const stmt = this.db.prepare(`
       INSERT INTO reports (
         id, user_id, type, start_date, end_date, format, file_url, generated_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
-    const reportID = uuidv4();
+    const reportID = randomUUID();
     const now = new Date().toISOString();
 
     stmt.run(
@@ -54,13 +51,9 @@ export class ReportGenerator {
     return `/reports/${filename}`;
   }
 
-  /**
-   * Gets raw analytics data from the database.
-   */
   async getRawData(userID: string, startDate: string, endDate: string): Promise<AnalyticsData> {
     const db = this.db.getDB();
 
-    // Get tasks completed and pending
     const taskStats = db
       .prepare(`
         SELECT
@@ -77,7 +70,6 @@ export class ReportGenerator {
       `)
       .get(userID, startDate, endDate) as any;
 
-    // Get meetings attended and scheduled
     const meetingStats = db
       .prepare(`
         SELECT
@@ -92,7 +84,6 @@ export class ReportGenerator {
       `)
       .get(userID, startDate, endDate) as any;
 
-    // Get appointments booked
     const appointmentStats = db
       .prepare(`
         SELECT COUNT(*) as total
@@ -105,7 +96,6 @@ export class ReportGenerator {
       `)
       .get(userID, startDate, endDate) as any;
 
-    // Get daily activity
     const dailyActivity = db
       .prepare(`
         SELECT
@@ -128,7 +118,6 @@ export class ReportGenerator {
       `)
       .all(userID, userID, startDate, endDate) as any[];
 
-    // Get category breakdown
     const categoryBreakdown: Record<string, number> = {};
     const categoryStats = db
       .prepare(`
@@ -159,10 +148,8 @@ export class ReportGenerator {
     const meetingsScheduled = meetingStats?.total || 0;
     const appointmentsBooked = appointmentStats?.total || 0;
 
-    // Calculate productivity score
     const score = this.calculateScore(completionRate, totalTasks, pendingTasks, meetingsAttended, meetingsScheduled, totalFocusHours);
 
-    // Format daily activity
     const formattedDaily = dailyActivity.map((day: any) => ({
       date: day.date,
       tasksCompleted: day.tasks_completed || 0,
@@ -242,9 +229,6 @@ export class ReportGenerator {
   }
 
   private async generatePDF(filePath: string, data: AnalyticsData, reportType: string): Promise<void> {
-    // In a real implementation, we'd use a PDF library like pdfkit or puppeteer.
-    // This is a placeholder implementation that creates a simple text file.
-    // For production, consider using 'pdfkit' or 'jsPDF'.
     const content = [
       `Sphere Schedule - ${reportType} Report`,
       '='.repeat(50),
@@ -280,8 +264,5 @@ export class ReportGenerator {
     }
 
     fs.writeFileSync(filePath, content.join('\n'));
-    // In production, you'd write a PDF file here.
-    // For now, we'll just create a text file with the same name.
-    // The calling code expects a file at this path.
   }
 }

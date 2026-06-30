@@ -1,4 +1,4 @@
-import { Result, MessageSchema } from '@sphere/shared';
+import { ok, err, type Result } from '@sphere/shared';
 import { Message, IChatRepository } from '@sphere/domain';
 import { DatabaseClient } from '../database/DatabaseClient';
 import { MessageDao } from './local/MessageDao';
@@ -50,14 +50,14 @@ export class ChatRepository implements IChatRepository {
     try {
       // Validate content
       if (!content || content.trim().length === 0) {
-        return Result.err(new Error('Message content cannot be empty'));
+        return err(new Error('Message content cannot be empty'));
       }
       if (content.length > 4000) {
-        return Result.err(new Error('Message cannot exceed 4000 characters'));
+        return err(new Error('Message cannot exceed 4000 characters'));
       }
 
       // Create message object
-      const messageId = crypto.randomUUID();
+      const messageId = randomUUID();
       const now = new Date().toISOString();
       const message = new Message(
         messageId,
@@ -82,9 +82,9 @@ export class ChatRepository implements IChatRepository {
         },
       });
 
-      return Result.ok(message);
+      return ok(message);
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 
@@ -95,9 +95,9 @@ export class ChatRepository implements IChatRepository {
   ): Promise<Result<{ messages: Message[]; hasMore: boolean }, Error>> {
     try {
       const result = await this.messageDao.getMessages(conversationID, limit, before);
-      return Result.ok(result);
+      return ok(result);
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 
@@ -127,9 +127,9 @@ export class ChatRepository implements IChatRepository {
         }
       };
 
-      return Result.ok(cleanup);
+      return ok(cleanup);
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 
@@ -141,9 +141,9 @@ export class ChatRepository implements IChatRepository {
         type: 'mark_read',
         payload: { conversationID, userID },
       });
-      return Result.ok(undefined);
+      return ok(undefined);
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 }

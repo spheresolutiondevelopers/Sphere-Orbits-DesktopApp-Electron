@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto';
 import { DatabaseClient } from '../../database/DatabaseClient';
 import { Note, NoteFilters, PaginationOptions, PaginatedResult } from '@sphere/domain';
 
@@ -11,7 +12,7 @@ export class NoteDao {
     userID: string,
     filters?: NoteFilters,
     pagination?: PaginationOptions
-  ): Promise<PaginatedResult<Note>> {
+  ): PaginatedResult<Note> {
     return this.db.transaction((db) => {
       let sql = `
         SELECT
@@ -113,7 +114,7 @@ export class NoteDao {
     note: Omit<Note, 'noteID' | 'createdAt' | 'updatedAt'>
   ): Note {
     const db = this.db.getDB();
-    const id = crypto.randomUUID();
+    const id = randomUUID();
     const now = new Date().toISOString();
 
     const stmt = db.prepare(`

@@ -43,5 +43,26 @@ export const ProductivityScoreSchema = z.object({
   weeklyTrend: z.array(z.number()),
 });
 
+// 👇 Add this new schema
+export const AnalyticsDataSchema = z.object({
+  tasksCompleted: z.number().int(),
+  tasksPending: z.number().int(),
+  tasksOverdue: z.number().int(),
+  completionRate: z.number().min(0).max(100),
+  totalFocusHours: z.number(),
+  meetingsAttended: z.number().int(),
+  meetingsScheduled: z.number().int(),
+  appointmentsBooked: z.number().int(),
+  productivityScore: z.number().min(0).max(100),
+  categoryBreakdown: z.record(z.string(), z.number()),
+  dailyActivity: z.array(z.object({
+    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    tasksCompleted: z.number().int(),
+    focusHours: z.number(),
+    meetings: z.number().int(),
+  })),
+});
+
 export type ProductivityReport = z.infer<typeof ProductivityReportSchema>;
 export type ProductivityScore = z.infer<typeof ProductivityScoreSchema>;
+export type AnalyticsData = z.infer<typeof AnalyticsDataSchema>;

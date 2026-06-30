@@ -1,4 +1,4 @@
-import { Result } from '@sphere/shared';
+import { err, type Result } from '@sphere/shared';
 import { INotesRepository } from '../repositories/INotesRepository';
 import { Note } from '../entities/Note';
 
@@ -19,13 +19,13 @@ export class SaveNoteUseCase {
   async execute(input: SaveNoteInput): Promise<Result<Note, Error>> {
     // Validate required fields
     if (!input.userID) {
-      return Result.err(new Error('userID is required'));
+      return err(new Error('userID is required'));
     }
     if (!input.content || input.content.trim().length === 0) {
-      return Result.err(new Error('Note content cannot be empty'));
+      return err(new Error('Note content cannot be empty'));
     }
     if (input.title && input.title.length > 255) {
-      return Result.err(new Error('Title cannot exceed 255 characters'));
+      return err(new Error('Title cannot exceed 255 characters'));
     }
 
     // If noteID is provided, update the existing note

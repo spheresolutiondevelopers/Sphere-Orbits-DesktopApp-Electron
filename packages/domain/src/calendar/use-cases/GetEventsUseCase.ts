@@ -1,4 +1,4 @@
-import { Result } from '@sphere/shared';
+import { err, type Result } from '@sphere/shared';
 import { ICalendarRepository } from '../repositories/ICalendarRepository';
 import { CalendarEvent } from '../entities/CalendarEvent';
 
@@ -12,13 +12,13 @@ export class GetEventsUseCase {
     endDate: string
   ): Promise<Result<CalendarEvent[], Error>> {
     if (!userID) {
-      return Result.err(new Error('userID is required'));
+      return err(new Error('userID is required'));
     }
     if (!startDate || !endDate) {
-      return Result.err(new Error('startDate and endDate are required'));
+      return err(new Error('startDate and endDate are required'));
     }
     if (new Date(startDate) > new Date(endDate)) {
-      return Result.err(new Error('startDate must be before endDate'));
+      return err(new Error('startDate must be before endDate'));
     }
 
     // Try to get from local cache first, then from remote.

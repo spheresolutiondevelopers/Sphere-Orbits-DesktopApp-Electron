@@ -1,4 +1,4 @@
-import { Result, EventSchema } from '@sphere/shared';
+import { ok, err, type Result, EventSchema } from '@sphere/shared';
 import { Event, IEventRepository, EventFilters, PaginationOptions, PaginatedResult } from '@sphere/domain';
 import { DatabaseClient } from '../database/DatabaseClient';
 import { EventDao } from './local/EventDao';
@@ -16,22 +16,22 @@ export class EventRepository implements IEventRepository {
     pagination?: PaginationOptions
   ): Promise<Result<PaginatedResult<Event>, Error>> {
     try {
-      const result = await this.eventDao.getEvents(userID, filters, pagination);
-      return Result.ok(result);
+      const result = this.eventDao.getEvents(userID, filters, pagination);
+      return ok(result);
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 
   async getEventById(eventID: string, userID: string): Promise<Result<Event, Error>> {
     try {
-      const event = await this.eventDao.getEventById(eventID, userID);
+      const event = this.eventDao.getEventById(eventID, userID);
       if (!event) {
-        return Result.err(new Error('Event not found'));
+        return err(new Error('Event not found'));
       }
-      return Result.ok(event);
+      return ok(event);
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 
@@ -48,7 +48,7 @@ export class EventRepository implements IEventRepository {
         userID: true,
       }).safeParse(event);
       if (!validation.success) {
-        return Result.err(new Error(validation.error.message));
+        return err(new Error(validation.error.message));
       }
 
       // Validate that start <= end if both provided
@@ -56,14 +56,14 @@ export class EventRepository implements IEventRepository {
         const start = new Date(event.startDateTime);
         const end = new Date(event.endDateTime);
         if (start >= end) {
-          return Result.err(new Error('Start time must be before end time'));
+          return err(new Error('Start time must be before end time'));
         }
       }
 
-      const created = await this.eventDao.createEvent(event);
-      return Result.ok(created);
+      const created = this.eventDao.createEvent(event);
+      return ok(created);
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 
@@ -72,43 +72,43 @@ export class EventRepository implements IEventRepository {
       // Validate partial updates
       const validation = EventSchema.partial().safeParse(updates);
       if (!validation.success) {
-        return Result.err(new Error(validation.error.message));
+        return err(new Error(validation.error.message));
       }
 
-      const updated = await this.eventDao.updateEvent(eventID, updates);
+      const updated = this.eventDao.updateEvent(eventID, updates);
       if (!updated) {
-        return Result.err(new Error('Event not found'));
+        return err(new Error('Event not found'));
       }
-      return Result.ok(updated);
+      return ok(updated);
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 
   async deleteEvent(eventID: string, userID: string): Promise<Result<void, Error>> {
     try {
-      await this.eventDao.softDelete(eventID, userID);
-      return Result.ok(undefined);
+      this.eventDao.softDelete(eventID, userID);
+      return ok(undefined);
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 
   async getEventsForSync(userID: string): Promise<Result<Event[], Error>> {
     try {
-      const events = await this.eventDao.getEventsForSync(userID);
-      return Result.ok(events);
+      const events = this.eventDao.getEventsForSync(userID);
+      return ok(events);
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 
   async markEventSynced(eventID: string): Promise<Result<void, Error>> {
     try {
-      await this.eventDao.markSynced(eventID);
-      return Result.ok(undefined);
+      this.eventDao.markSynced(eventID);
+      return ok(undefined);
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 }

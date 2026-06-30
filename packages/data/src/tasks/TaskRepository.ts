@@ -1,4 +1,4 @@
-import { Result, TaskSchema } from '@sphere/shared';
+import { ok, err, type Result, TaskSchema } from '@sphere/shared';
 import { Task, ITaskRepository, TaskFilters, PaginationOptions, PaginatedResult } from '@sphere/domain';
 import { DatabaseClient } from '../database/DatabaseClient';
 import { TaskDao } from './local/TaskDao';
@@ -6,11 +6,15 @@ import { TaskApi } from './remote/TaskApi';
 
 export class TaskRepository implements ITaskRepository {
   private taskDao: TaskDao;
-  private taskApi: TaskApi;
+  private _taskApi: TaskApi;
 
   constructor(db: DatabaseClient, apiBaseURL: string) {
     this.taskDao = new TaskDao(db);
-    this.taskApi = new TaskApi(apiBaseURL);
+    this._taskApi = new TaskApi(apiBaseURL);
+  }
+
+  setAuthToken(token: string): void {
+    this._taskApi.setAuthToken(token);
   }
 
   async getTasks(
@@ -20,9 +24,9 @@ export class TaskRepository implements ITaskRepository {
   ): Promise<Result<PaginatedResult<Task>, Error>> {
     try {
       const result = await this.taskDao.getTasks(userID, filters, pagination);
-      return Result.ok(result);
+      return ok(result);
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 
@@ -30,11 +34,11 @@ export class TaskRepository implements ITaskRepository {
     try {
       const row = await this.taskDao.getTaskById(taskID, userID);
       if (!row) {
-        return Result.err(new Error('Task not found'));
+        return err(new Error('Task not found'));
       }
-      return Result.ok(row);
+      return ok(row);
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 
@@ -51,13 +55,13 @@ export class TaskRepository implements ITaskRepository {
         userID: true,
       }).safeParse(task);
       if (!validation.success) {
-        return Result.err(new Error(validation.error.message));
+        return err(new Error(validation.error.message));
       }
 
       const created = await this.taskDao.createTask(task);
-      return Result.ok(created);
+      return ok(created);
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 
@@ -66,52 +70,52 @@ export class TaskRepository implements ITaskRepository {
       // Validate partial updates
       const validation = TaskSchema.partial().safeParse(updates);
       if (!validation.success) {
-        return Result.err(new Error(validation.error.message));
+        return err(new Error(validation.error.message));
       }
 
       const updated = await this.taskDao.updateTask(taskID, updates);
       if (!updated) {
-        return Result.err(new Error('Task not found'));
+        return err(new Error('Task not found'));
       }
-      return Result.ok(updated);
+      return ok(updated);
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 
   async deleteTask(taskID: string, userID: string): Promise<Result<void, Error>> {
     try {
       await this.taskDao.softDelete(taskID, userID);
-      return Result.ok(undefined);
+      return ok(undefined);
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 
   async permanentlyDeleteTask(taskID: string, userID: string): Promise<Result<void, Error>> {
     try {
       await this.taskDao.hardDelete(taskID, userID);
-      return Result.ok(undefined);
+      return ok(undefined);
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 
   async getTasksForSync(userID: string): Promise<Result<Task[], Error>> {
     try {
       const tasks = await this.taskDao.getTasksForSync(userID);
-      return Result.ok(tasks);
+      return ok(tasks);
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 
   async markTaskSynced(taskID: string): Promise<Result<void, Error>> {
     try {
       await this.taskDao.markSynced(taskID);
-      return Result.ok(undefined);
+      return ok(undefined);
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 }

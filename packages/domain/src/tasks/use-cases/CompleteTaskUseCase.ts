@@ -1,4 +1,4 @@
-import { Result } from '@sphere/shared';
+import { err, type Result } from '@sphere/shared';
 import { ITaskRepository } from '../repositories/ITaskRepository';
 import { Task } from '../entities/Task';
 
@@ -33,13 +33,13 @@ export class CreateTaskUseCase {
   async execute(input: CreateTaskInput): Promise<Result<Task, Error>> {
     // Validate required fields
     if (!input.userID) {
-      return Result.err(new Error('userID is required'));
+      return err(new Error('userID is required'));
     }
     if (!input.title || input.title.trim().length === 0) {
-      return Result.err(new Error('Title is required'));
+      return err(new Error('Title is required'));
     }
     if (input.title.length > 255) {
-      return Result.err(new Error('Title cannot exceed 255 characters'));
+      return err(new Error('Title cannot exceed 255 characters'));
     }
 
     // Create a partial task object (without taskID, createdAt, updatedAt)

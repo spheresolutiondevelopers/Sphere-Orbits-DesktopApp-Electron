@@ -1,4 +1,4 @@
-import { Result } from '@sphere/shared';
+import { err, type Result } from '@sphere/shared';
 import { IChatRepository } from '../repositories/IChatRepository';
 import { Message } from '../entities/Message';
 
@@ -16,10 +16,10 @@ export class ObserveMessagesUseCase {
     onMessage: (message: Message) => void
   ): Promise<Result<() => void, Error>> {
     if (!conversationID) {
-      return Result.err(new Error('conversationID is required'));
+      return err(new Error('conversationID is required'));
     }
     if (!onMessage || typeof onMessage !== 'function') {
-      return Result.err(new Error('onMessage callback is required'));
+      return err(new Error('onMessage callback is required'));
     }
 
     return this.chatRepo.observeMessages(conversationID, onMessage);

@@ -36,7 +36,7 @@ export class SettingsStore {
       reminderDefaultMinutes: row.reminder_default_minutes,
       shareUsageData: row.share_usage_data === 1,
       preferences: row.preferences ? JSON.parse(row.preferences) : {},
-    };
+    } as Settings;
   }
 
   /**

@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto';
 import { DatabaseClient } from '../../database/DatabaseClient';
 import { Appointment, AppointmentFilters, PaginationOptions, PaginatedResult } from '@sphere/domain';
 
@@ -11,7 +12,7 @@ export class AppointmentDao {
     userID: string,
     filters?: AppointmentFilters,
     pagination?: PaginationOptions
-  ): Promise<PaginatedResult<Appointment>> {
+  ): PaginatedResult<Appointment> {
     return this.db.transaction((db) => {
       let sql = `
         SELECT
@@ -108,7 +109,7 @@ export class AppointmentDao {
     appointment: Omit<Appointment, 'appointmentID' | 'createdAt' | 'updatedAt'>
   ): Appointment {
     const db = this.db.getDB();
-    const id = crypto.randomUUID();
+    const id = randomUUID();
     const now = new Date().toISOString();
 
     const stmt = db.prepare(`
@@ -200,7 +201,6 @@ export class AppointmentDao {
     }
 
     // Fetch the updated appointment
-    // We need userID; we don't have it, so we fetch without userID
     const getStmt = db.prepare(`
       SELECT
         id, user_id, title, description, appointment_type,

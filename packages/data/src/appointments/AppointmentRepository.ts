@@ -1,4 +1,4 @@
-import { Result, AppointmentSchema } from '@sphere/shared';
+import { ok, err, type Result, AppointmentSchema } from '@sphere/shared';
 import { Appointment, IAppointmentRepository, AppointmentFilters, PaginationOptions, PaginatedResult } from '@sphere/domain';
 import { DatabaseClient } from '../database/DatabaseClient';
 import { AppointmentDao } from './local/AppointmentDao';
@@ -16,22 +16,22 @@ export class AppointmentRepository implements IAppointmentRepository {
     pagination?: PaginationOptions
   ): Promise<Result<PaginatedResult<Appointment>, Error>> {
     try {
-      const result = await this.appointmentDao.getAppointments(userID, filters, pagination);
-      return Result.ok(result);
+      const result = this.appointmentDao.getAppointments(userID, filters, pagination);
+      return ok(result);
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 
   async getAppointmentById(appointmentID: string, userID: string): Promise<Result<Appointment, Error>> {
     try {
-      const appointment = await this.appointmentDao.getAppointmentById(appointmentID, userID);
+      const appointment = this.appointmentDao.getAppointmentById(appointmentID, userID);
       if (!appointment) {
-        return Result.err(new Error('Appointment not found'));
+        return err(new Error('Appointment not found'));
       }
-      return Result.ok(appointment);
+      return ok(appointment);
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 
@@ -48,20 +48,20 @@ export class AppointmentRepository implements IAppointmentRepository {
         userID: true,
       }).safeParse(appointment);
       if (!validation.success) {
-        return Result.err(new Error(validation.error.message));
+        return err(new Error(validation.error.message));
       }
 
       // Validate that start is before end
       const start = new Date(appointment.startDateTime);
       const end = new Date(appointment.endDateTime);
       if (start >= end) {
-        return Result.err(new Error('Start time must be before end time'));
+        return err(new Error('Start time must be before end time'));
       }
 
-      const created = await this.appointmentDao.createAppointment(appointment);
-      return Result.ok(created);
+      const created = this.appointmentDao.createAppointment(appointment);
+      return ok(created);
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 
@@ -70,25 +70,25 @@ export class AppointmentRepository implements IAppointmentRepository {
       // Validate partial updates
       const validation = AppointmentSchema.partial().safeParse(updates);
       if (!validation.success) {
-        return Result.err(new Error(validation.error.message));
+        return err(new Error(validation.error.message));
       }
 
-      const updated = await this.appointmentDao.updateAppointment(appointmentID, updates);
+      const updated = this.appointmentDao.updateAppointment(appointmentID, updates);
       if (!updated) {
-        return Result.err(new Error('Appointment not found'));
+        return err(new Error('Appointment not found'));
       }
-      return Result.ok(updated);
+      return ok(updated);
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 
   async deleteAppointment(appointmentID: string, userID: string): Promise<Result<void, Error>> {
     try {
-      await this.appointmentDao.softDelete(appointmentID, userID);
-      return Result.ok(undefined);
+      this.appointmentDao.softDelete(appointmentID, userID);
+      return ok(undefined);
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 
@@ -99,33 +99,33 @@ export class AppointmentRepository implements IAppointmentRepository {
     excludeAppointmentID?: string
   ): Promise<Result<Appointment[], Error>> {
     try {
-      const conflicts = await this.appointmentDao.getConflicts(
+      const conflicts = this.appointmentDao.getConflicts(
         userID,
         startDateTime,
         endDateTime,
         excludeAppointmentID
       );
-      return Result.ok(conflicts);
+      return ok(conflicts);
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 
   async getAppointmentsForSync(userID: string): Promise<Result<Appointment[], Error>> {
     try {
-      const appointments = await this.appointmentDao.getAppointmentsForSync(userID);
-      return Result.ok(appointments);
+      const appointments = this.appointmentDao.getAppointmentsForSync(userID);
+      return ok(appointments);
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 
   async markAppointmentSynced(appointmentID: string): Promise<Result<void, Error>> {
     try {
-      await this.appointmentDao.markSynced(appointmentID);
-      return Result.ok(undefined);
+      this.appointmentDao.markSynced(appointmentID);
+      return ok(undefined);
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 }

@@ -1,4 +1,4 @@
-import { Result } from '@sphere/shared';
+import { ok, type Result } from '@sphere/shared';
 import { IAuthRepository } from '../repositories/IAuthRepository';
 import { User } from '../entities/User';
 
@@ -22,6 +22,6 @@ export class LoginUseCase {
       return result as any; // propagate error
     }
     const { user, token, refreshToken } = result.value;
-    return Result.ok({ user, token, refreshToken });
+    return ok({ user, token, refreshToken });
   }
 }

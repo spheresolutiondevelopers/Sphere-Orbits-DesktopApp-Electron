@@ -1,4 +1,4 @@
-import { Result } from '@sphere/shared';
+import { err, type Result } from '@sphere/shared';
 import {
   IAppointmentRepository,
   AppointmentFilters,
@@ -16,7 +16,7 @@ export class GetAppointmentsUseCase {
     pagination?: PaginationOptions
   ): Promise<Result<PaginatedResult<Appointment>, Error>> {
     if (!userID) {
-      return Result.err(new Error('userID is required'));
+      return err(new Error('userID is required'));
     }
     return this.appointmentRepo.getAppointments(userID, filters, pagination);
   }

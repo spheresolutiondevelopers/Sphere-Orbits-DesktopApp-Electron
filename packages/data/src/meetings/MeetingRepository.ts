@@ -1,7 +1,8 @@
-import { Result, MeetingSchema } from '@sphere/shared';
+import { ok, err, type Result, MeetingSchema } from '@sphere/shared';
 import { Meeting, IMeetingRepository, MeetingFilters, PaginationOptions, PaginatedResult } from '@sphere/domain';
 import { DatabaseClient } from '../database/DatabaseClient';
 import { ZoomApi } from './remote/ZoomApi';
+import { randomUUID } from 'crypto';
 
 export class MeetingRepository implements IMeetingRepository {
   private zoomApi: ZoomApi;
@@ -78,9 +79,9 @@ export class MeetingRepository implements IMeetingRepository {
       const rows = stmt.all(...params) as any[];
       const meetings = rows.map(this.mapRowToMeeting);
 
-      return Result.ok({ items: meetings, total });
+      return ok({ items: meetings, total });
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 
@@ -100,11 +101,11 @@ export class MeetingRepository implements IMeetingRepository {
       `);
       const row = stmt.get(meetingID, userID) as any;
       if (!row) {
-        return Result.err(new Error('Meeting not found'));
+        return err(new Error('Meeting not found'));
       }
-      return Result.ok(this.mapRowToMeeting(row));
+      return ok(this.mapRowToMeeting(row));
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 
@@ -121,11 +122,11 @@ export class MeetingRepository implements IMeetingRepository {
         organizerUserID: true,
       }).safeParse(meeting);
       if (!validation.success) {
-        return Result.err(new Error(validation.error.message));
+        return err(new Error(validation.error.message));
       }
 
       const db = this.getDB();
-      const id = crypto.randomUUID();
+      const id = randomUUID();
       const now = new Date().toISOString();
 
       // First, ensure the task exists and is a meeting type
@@ -134,7 +135,7 @@ export class MeetingRepository implements IMeetingRepository {
       `);
       const task = taskStmt.get(meeting.taskID);
       if (!task) {
-        return Result.err(new Error('Task not found or not a meeting type'));
+        return err(new Error('Task not found or not a meeting type'));
       }
 
       const stmt = db.prepare(`
@@ -166,7 +167,7 @@ export class MeetingRepository implements IMeetingRepository {
       // Return the created meeting
       return this.getMeetingById(id, meeting.organizerUserID);
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 
@@ -175,7 +176,7 @@ export class MeetingRepository implements IMeetingRepository {
       // Validate partial updates
       const validation = MeetingSchema.partial().safeParse(updates);
       if (!validation.success) {
-        return Result.err(new Error(validation.error.message));
+        return err(new Error(validation.error.message));
       }
 
       const db = this.getDB();
@@ -206,7 +207,7 @@ export class MeetingRepository implements IMeetingRepository {
       }
 
       if (fields.length === 0) {
-        return Result.err(new Error('No fields to update'));
+        return err(new Error('No fields to update'));
       }
 
       fields.push('updated_at = ?');
@@ -218,12 +219,10 @@ export class MeetingRepository implements IMeetingRepository {
       `);
       const result = stmt.run(...params);
       if (result.changes === 0) {
-        return Result.err(new Error('Meeting not found'));
+        return err(new Error('Meeting not found'));
       }
 
-      // Fetch the updated meeting (need userID, but we don't have it; we'll fetch with the organizer)
-      // We can fetch the meeting by ID without userID, but we need to return the full meeting.
-      // Let's fetch it directly from the table.
+      // Fetch the updated meeting
       const getStmt = db.prepare(`
         SELECT
           id, task_id, organizer_user_id, title, description,
@@ -234,13 +233,13 @@ export class MeetingRepository implements IMeetingRepository {
       `);
       const row = getStmt.get(meetingID) as any;
       if (!row) {
-        return Result.err(new Error('Meeting not found'));
+        return err(new Error('Meeting not found'));
       }
 
       const updatedMeeting = this.mapRowToMeeting(row);
-      return Result.ok(updatedMeeting);
+      return ok(updatedMeeting);
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 
@@ -256,16 +255,16 @@ export class MeetingRepository implements IMeetingRepository {
       `);
       const result = verifyStmt.get(meetingID, userID);
       if (!result) {
-        return Result.err(new Error('Meeting not found or not authorized'));
+        return err(new Error('Meeting not found or not authorized'));
       }
 
       const stmt = db.prepare(`
         UPDATE meetings SET is_deleted = 1, updated_at = ? WHERE id = ?
       `);
       stmt.run(new Date().toISOString(), meetingID);
-      return Result.ok(undefined);
+      return ok(undefined);
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 
@@ -279,7 +278,7 @@ export class MeetingRepository implements IMeetingRepository {
       // First, get the meeting to know its platform and link
       const meetingResult = await this.getMeetingById(meetingID, userID);
       if (meetingResult.isFailure()) {
-        return Result.err(meetingResult.error);
+        return err(meetingResult.error);
       }
 
       const meeting = meetingResult.value;
@@ -287,19 +286,22 @@ export class MeetingRepository implements IMeetingRepository {
       // If it's a Zoom meeting, generate a join link
       if (meeting.meetingPlatform === 'Zoom' && meeting.meetingLink) {
         // For Zoom, we can generate a join link using the Zoom API
-        // This is a simplified implementation
-        const joinLink = await this.zoomApi.generateJoinLink(meeting.meetingLink, participantEmail, participantName);
-        return Result.ok({ meetingLink: joinLink });
+        const joinLink = await this.zoomApi.generateJoinLink(
+          meeting.meetingLink,
+          participantEmail,
+          participantName
+        );
+        return ok({ meetingLink: joinLink });
       }
 
       // If it's a Google Meet or Teams, just return the existing link
       if (meeting.meetingLink) {
-        return Result.ok({ meetingLink: meeting.meetingLink });
+        return ok({ meetingLink: meeting.meetingLink });
       }
 
-      return Result.err(new Error('No meeting link available'));
+      return err(new Error('No meeting link available'));
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 
@@ -320,9 +322,9 @@ export class MeetingRepository implements IMeetingRepository {
       `);
       const rows = stmt.all(userID) as any[];
       const meetings = rows.map(this.mapRowToMeeting);
-      return Result.ok(meetings);
+      return ok(meetings);
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 
@@ -333,9 +335,9 @@ export class MeetingRepository implements IMeetingRepository {
         UPDATE meetings SET external_sync_status = 'synced', updated_at = ? WHERE id = ?
       `);
       stmt.run(new Date().toISOString(), meetingID);
-      return Result.ok(undefined);
+      return ok(undefined);
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 
@@ -343,10 +345,7 @@ export class MeetingRepository implements IMeetingRepository {
    * Helper to get the database instance.
    */
   private getDB() {
-    // We need a database instance; we'll get it from the ZoomApi constructor.
-    // But ZoomApi doesn't have a DB reference. We'll store it as a property.
-    // For simplicity, I'll add a property to store the db.
-    // In a real implementation, you'd inject it.
+    // We need a database instance; we'll get it from the constructor.
     throw new Error('getDB not implemented');
   }
 

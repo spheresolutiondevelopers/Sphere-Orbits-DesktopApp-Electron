@@ -1,4 +1,3 @@
-// Barrel exports for all data implementations
 export * from './auth';
 export * from './tasks';
 export * from './calendar';
@@ -9,3 +8,4 @@ export * from './chat';
 export * from './notes';
 export * from './analytics';
 export * from './settings';
+export * from './database';

@@ -1,4 +1,4 @@
-import { Result } from '@sphere/shared';
+import { err, type Result } from '@sphere/shared';
 import { ISettingsRepository } from '../repositories/ISettingsRepository';
 import { Settings } from '../entities/Settings';
 
@@ -7,7 +7,7 @@ export class GetSettingsUseCase {
 
   async execute(userID: string): Promise<Result<Settings, Error>> {
     if (!userID) {
-      return Result.err(new Error('userID is required'));
+      return err(new Error('userID is required'));
     }
     return this.settingsRepo.getSettings(userID);
   }

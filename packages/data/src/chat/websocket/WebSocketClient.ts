@@ -44,7 +44,7 @@ export class WebSocketClient {
       }
     };
 
-    this.ws.onmessage = (event) => {
+    this.ws.onmessage = (event: MessageEvent) => {
       try {
         const data = JSON.parse(event.data);
         if (this.messageHandler) {
@@ -60,7 +60,7 @@ export class WebSocketClient {
       this.scheduleReconnect();
     };
 
-    this.ws.onerror = (error) => {
+    this.ws.onerror = (error: Event) => {
       console.error('WebSocket error:', error);
     };
   }

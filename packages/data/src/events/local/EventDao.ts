@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto';
 import { DatabaseClient } from '../../database/DatabaseClient';
 import { Event, EventFilters, PaginationOptions, PaginatedResult } from '@sphere/domain';
 
@@ -11,7 +12,7 @@ export class EventDao {
     userID: string,
     filters?: EventFilters,
     pagination?: PaginationOptions
-  ): Promise<PaginatedResult<Event>> {
+  ): PaginatedResult<Event> {
     return this.db.transaction((db) => {
       let sql = `
         SELECT
@@ -102,7 +103,7 @@ export class EventDao {
     event: Omit<Event, 'eventID' | 'createdAt' | 'updatedAt'>
   ): Event {
     const db = this.db.getDB();
-    const id = crypto.randomUUID();
+    const id = randomUUID();
     const now = new Date().toISOString();
 
     const stmt = db.prepare(`

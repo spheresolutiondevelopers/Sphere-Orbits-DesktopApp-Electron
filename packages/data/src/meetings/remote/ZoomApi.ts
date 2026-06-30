@@ -55,11 +55,11 @@ export class ZoomApi {
    */
   async generateJoinLink(
     meetingLink: string,
-    participantEmail: string,
-    participantName: string
+    _participantEmail: string,
+    _participantName: string
   ): Promise<string> {
     // For Zoom, the join link is already provided in the meeting object.
-    // However, if we need to generate a personalized link, we could add query params.
+    // If we need to generate a personalized link, we could add query params.
     // For simplicity, we just return the existing link.
     return meetingLink;
   }

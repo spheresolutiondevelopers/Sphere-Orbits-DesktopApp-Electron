@@ -1,4 +1,4 @@
-import { Result } from '@sphere/shared';
+import { err, type Result } from '@sphere/shared';
 import { IAnalyticsRepository } from '../repositories/IAnalyticsRepository';
 
 export class GetProductivityScoreUseCase {
@@ -18,7 +18,7 @@ export class GetProductivityScoreUseCase {
     weeklyTrend: number[];
   }, Error>> {
     if (!userID) {
-      return Result.err(new Error('userID is required'));
+      return err(new Error('userID is required'));
     }
     return this.analyticsRepo.getProductivityScore(userID, date);
   }

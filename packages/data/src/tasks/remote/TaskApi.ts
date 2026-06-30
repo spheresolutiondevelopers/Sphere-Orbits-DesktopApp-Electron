@@ -17,7 +17,7 @@ export class TaskApi {
   }
 
   async getTasks(
-    userID: string,
+    _userID: string,
     filters?: any,
     pagination?: { limit: number; offset: number }
   ): Promise<{ tasks: Task[]; total: number }> {

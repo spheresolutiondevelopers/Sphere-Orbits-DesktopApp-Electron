@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto';
 import { DatabaseClient } from '../../database/DatabaseClient';
 import { CalendarEvent } from '@sphere/domain';
 
@@ -61,7 +62,7 @@ export class EventDao {
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
     `);
 
-    const id = event.id || crypto.randomUUID();
+    const id = event.id || randomUUID();
 
     stmt.run(
       id,

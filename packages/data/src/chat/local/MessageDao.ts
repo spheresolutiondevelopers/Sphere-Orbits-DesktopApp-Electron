@@ -33,7 +33,7 @@ export class MessageDao {
     conversationID: string,
     limit: number,
     before?: string
-  ): Promise<{ messages: Message[]; hasMore: boolean }> {
+  ): { messages: Message[]; hasMore: boolean } {
     return this.db.transaction((db) => {
       let sql = `
         SELECT

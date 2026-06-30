@@ -1,4 +1,4 @@
-import { Result } from '@sphere/shared';
+import { err, type Result } from '@sphere/shared';
 import { ITaskRepository, TaskFilters, PaginationOptions, PaginatedResult } from '../repositories/ITaskRepository';
 import { Task } from '../entities/Task';
 
@@ -11,7 +11,7 @@ export class GetTasksUseCase {
     pagination?: PaginationOptions
   ): Promise<Result<PaginatedResult<Task>, Error>> {
     if (!userID) {
-      return Result.err(new Error('userID is required'));
+      return err(new Error('userID is required'));
     }
     return this.taskRepo.getTasks(userID, filters, pagination);
   }

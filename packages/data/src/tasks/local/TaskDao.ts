@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto';
 import { DatabaseClient } from '../../database/DatabaseClient';
 import { Task, TaskFilters, PaginationOptions, PaginatedResult } from '@sphere/domain';
 
@@ -11,7 +12,7 @@ export class TaskDao {
     userID: string,
     filters?: TaskFilters,
     pagination?: PaginationOptions
-  ): Promise<PaginatedResult<Task>> {
+  ): PaginatedResult<Task> {
     return this.db.transaction((db) => {
       let sql = `
         SELECT
@@ -115,9 +116,11 @@ export class TaskDao {
   /**
    * Creates a new task.
    */
-  createTask(task: Omit<Task, 'taskID' | 'createdAt' | 'updatedAt'>): Task {
+  createTask(
+    task: Omit<Task, 'taskID' | 'createdAt' | 'updatedAt'>
+  ): Task {
     const db = this.db.getDB();
-    const id = crypto.randomUUID();
+    const id = randomUUID();
     const now = new Date().toISOString();
 
     const stmt = db.prepare(`
@@ -193,7 +196,6 @@ export class TaskDao {
 
     for (const key of allowedFields) {
       if (key in updates && updates[key as keyof Task] !== undefined) {
-        // Convert snake_case for SQL
         const snakeKey = key.replace(/[A-Z]/g, (c) => '_' + c.toLowerCase());
         fields.push(`${snakeKey} = ?`);
         const value = updates[key as keyof Task];

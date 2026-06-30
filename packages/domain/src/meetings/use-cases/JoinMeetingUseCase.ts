@@ -1,4 +1,4 @@
-import { Result } from '@sphere/shared';
+import { err, type Result } from '@sphere/shared';
 import { IMeetingRepository } from '../repositories/IMeetingRepository';
 
 export interface JoinMeetingInput {
@@ -13,16 +13,16 @@ export class JoinMeetingUseCase {
 
   async execute(input: JoinMeetingInput): Promise<Result<{ meetingLink: string }, Error>> {
     if (!input.meetingID) {
-      return Result.err(new Error('meetingID is required'));
+      return err(new Error('meetingID is required'));
     }
     if (!input.userID) {
-      return Result.err(new Error('userID is required'));
+      return err(new Error('userID is required'));
     }
     if (!input.participantEmail) {
-      return Result.err(new Error('participantEmail is required'));
+      return err(new Error('participantEmail is required'));
     }
     if (!input.participantName) {
-      return Result.err(new Error('participantName is required'));
+      return err(new Error('participantName is required'));
     }
 
     // First, ensure the meeting exists and the user is authorized.

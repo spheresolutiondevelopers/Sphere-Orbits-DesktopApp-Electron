@@ -1,4 +1,4 @@
-import { Result } from '@sphere/shared';
+import { err, type Result } from '@sphere/shared';
 import { INotesRepository, NoteFilters, PaginationOptions, PaginatedResult } from '../repositories/INotesRepository';
 import { Note } from '../entities/Note';
 
@@ -11,7 +11,7 @@ export class GetNotesUseCase {
     pagination?: PaginationOptions
   ): Promise<Result<PaginatedResult<Note>, Error>> {
     if (!userID) {
-      return Result.err(new Error('userID is required'));
+      return err(new Error('userID is required'));
     }
     return this.notesRepo.getNotes(userID, filters, pagination);
   }

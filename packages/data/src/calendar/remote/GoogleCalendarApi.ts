@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto';
 import axios, { AxiosInstance } from 'axios';
 import { CalendarEvent } from '@sphere/domain';
 
@@ -5,7 +6,7 @@ export class GoogleCalendarApi {
   private client: AxiosInstance;
   private accessToken: string | null = null;
 
-  constructor(baseURL: string) {
+  constructor(_baseURL: string) {
     this.client = axios.create({
       baseURL: 'https://www.googleapis.com/calendar/v3',
       timeout: 15000,
@@ -61,7 +62,7 @@ export class GoogleCalendarApi {
         dateTime: event.endDateTime,
         timeZone: 'UTC',
       },
-      attendees: event.attendees?.map((email) => ({ email })),
+      attendees: event.attendees?.map((email: string) => ({ email })),
       colorId: this.mapColorToGoogleColor(event.color || '#2196F3'),
       recurrence: event.recurrenceRule ? [event.recurrenceRule] : undefined,
     };
@@ -92,7 +93,7 @@ export class GoogleCalendarApi {
       googleUpdate.end = { dateTime: updates.endDateTime, timeZone: 'UTC' };
     }
     if (updates.attendees !== undefined) {
-      googleUpdate.attendees = updates.attendees?.map((email) => ({ email }));
+      googleUpdate.attendees = updates.attendees?.map((email: string) => ({ email }));
     }
     if (updates.color) {
       googleUpdate.colorId = this.mapColorToGoogleColor(updates.color);
@@ -120,7 +121,7 @@ export class GoogleCalendarApi {
    */
   private mapGoogleEventToCalendarEvent(item: any): CalendarEvent {
     return {
-      id: crypto.randomUUID(),
+      id: randomUUID(),
       source: 'google',
       externalID: item.id,
       title: item.summary || 'Untitled Event',

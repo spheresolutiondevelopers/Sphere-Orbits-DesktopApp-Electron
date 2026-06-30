@@ -1,4 +1,4 @@
-import { Result, NoteSchema } from '@sphere/shared';
+import { ok, err, type Result, NoteSchema } from '@sphere/shared';
 import { Note, INotesRepository, NoteFilters, PaginationOptions, PaginatedResult } from '@sphere/domain';
 import { DatabaseClient } from '../database/DatabaseClient';
 import { NoteDao } from './local/NoteDao';
@@ -16,22 +16,22 @@ export class NotesRepository implements INotesRepository {
     pagination?: PaginationOptions
   ): Promise<Result<PaginatedResult<Note>, Error>> {
     try {
-      const result = await this.noteDao.getNotes(userID, filters, pagination);
-      return Result.ok(result);
+      const result = this.noteDao.getNotes(userID, filters, pagination);
+      return ok(result);
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 
   async getNoteById(noteID: string, userID: string): Promise<Result<Note, Error>> {
     try {
-      const note = await this.noteDao.getNoteById(noteID, userID);
+      const note = this.noteDao.getNoteById(noteID, userID);
       if (!note) {
-        return Result.err(new Error('Note not found'));
+        return err(new Error('Note not found'));
       }
-      return Result.ok(note);
+      return ok(note);
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 
@@ -48,18 +48,18 @@ export class NotesRepository implements INotesRepository {
         userID: true,
       }).safeParse(note);
       if (!validation.success) {
-        return Result.err(new Error(validation.error.message));
+        return err(new Error(validation.error.message));
       }
 
       // Ensure content is not empty
       if (!note.content || note.content.trim().length === 0) {
-        return Result.err(new Error('Note content cannot be empty'));
+        return err(new Error('Note content cannot be empty'));
       }
 
-      const created = await this.noteDao.createNote(note);
-      return Result.ok(created);
+      const created = this.noteDao.createNote(note);
+      return ok(created);
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 
@@ -68,34 +68,34 @@ export class NotesRepository implements INotesRepository {
       // Validate partial updates
       const validation = NoteSchema.partial().safeParse(updates);
       if (!validation.success) {
-        return Result.err(new Error(validation.error.message));
+        return err(new Error(validation.error.message));
       }
 
-      const updated = await this.noteDao.updateNote(noteID, updates);
+      const updated = this.noteDao.updateNote(noteID, updates);
       if (!updated) {
-        return Result.err(new Error('Note not found'));
+        return err(new Error('Note not found'));
       }
-      return Result.ok(updated);
+      return ok(updated);
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 
   async deleteNote(noteID: string, userID: string): Promise<Result<void, Error>> {
     try {
-      await this.noteDao.softDelete(noteID, userID);
-      return Result.ok(undefined);
+      this.noteDao.softDelete(noteID, userID);
+      return ok(undefined);
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 
   async permanentlyDeleteNote(noteID: string, userID: string): Promise<Result<void, Error>> {
     try {
-      await this.noteDao.hardDelete(noteID, userID);
-      return Result.ok(undefined);
+      this.noteDao.hardDelete(noteID, userID);
+      return ok(undefined);
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 
@@ -105,28 +105,28 @@ export class NotesRepository implements INotesRepository {
     entityID: string
   ): Promise<Result<Note[], Error>> {
     try {
-      const notes = await this.noteDao.getNotesForEntity(userID, entityType, entityID);
-      return Result.ok(notes);
+      const notes = this.noteDao.getNotesForEntity(userID, entityType, entityID);
+      return ok(notes);
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 
   async getNotesForSync(userID: string): Promise<Result<Note[], Error>> {
     try {
-      const notes = await this.noteDao.getNotesForSync(userID);
-      return Result.ok(notes);
+      const notes = this.noteDao.getNotesForSync(userID);
+      return ok(notes);
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 
   async markNoteSynced(noteID: string): Promise<Result<void, Error>> {
     try {
-      await this.noteDao.markSynced(noteID);
-      return Result.ok(undefined);
+      this.noteDao.markSynced(noteID);
+      return ok(undefined);
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 }

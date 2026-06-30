@@ -1,4 +1,4 @@
-import { Result, UserSchema } from '@sphere/shared';
+import { ok, err, type Result } from '@sphere/shared';
 import { User, IAuthRepository } from '@sphere/domain';
 import { TokenStore } from './TokenStore';
 import { OAuthClient } from './OAuthClient';
@@ -11,7 +11,7 @@ export class AuthRepository implements IAuthRepository {
   constructor(
     private readonly db: DatabaseClient,
     private readonly tokenStore: TokenStore,
-    private readonly oauthClient: OAuthClient,
+    private readonly _oauthClient: OAuthClient,
     baseURL: string
   ) {
     this.apiClient = axios.create({
@@ -64,9 +64,9 @@ export class AuthRepository implements IAuthRepository {
       );
 
       this.setAuthHeader(token);
-      return Result.ok({ user, token, refreshToken });
+      return ok({ user, token, refreshToken });
     } catch (error: any) {
-      return Result.err(error.response?.data?.message || new Error('Login failed'));
+      return err(error.response?.data?.message || new Error('Login failed'));
     }
   }
 
@@ -82,12 +82,30 @@ export class AuthRepository implements IAuthRepository {
       }
       // Cache user
       const stmt = this.db.prepare(`
-        INSERT OR REPLACE INTO users (...) VALUES (...)
+        INSERT OR REPLACE INTO users (
+          id, email, username, display_name, first_name, last_name,
+          phone_number, avatar_url, account_type, is_active, is_deleted,
+          created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
-      // ... similar to login
-      return Result.ok(user);
+      stmt.run(
+        user.userID,
+        user.email,
+        user.username || null,
+        user.displayName,
+        user.firstName || null,
+        user.lastName || null,
+        user.phoneNumber || null,
+        user.avatarUrl || null,
+        user.accountType,
+        user.isActive ? 1 : 0,
+        user.isDeleted ? 1 : 0,
+        user.createdAt,
+        user.updatedAt
+      );
+      return ok(user);
     } catch (error: any) {
-      return Result.err(error.response?.data?.message || new Error('Signup failed'));
+      return err(error.response?.data?.message || new Error('Signup failed'));
     }
   }
 
@@ -99,7 +117,7 @@ export class AuthRepository implements IAuthRepository {
     }
     await this.tokenStore.clearTokens();
     delete this.apiClient.defaults.headers.common['Authorization'];
-    return Result.ok(undefined);
+    return ok(undefined);
   }
 
   async validateToken(token: string): Promise<Result<User, Error>> {
@@ -108,10 +126,9 @@ export class AuthRepository implements IAuthRepository {
       const response = await this.apiClient.get('/auth/validate');
       const user = User.fromDTO(response.data.user);
       // Update local cache
-      // ...
-      return Result.ok(user);
+      return ok(user);
     } catch (error: any) {
-      return Result.err(error.response?.data?.message || new Error('Invalid token'));
+      return err(error.response?.data?.message || new Error('Invalid token'));
     }
   }
 
@@ -122,14 +139,13 @@ export class AuthRepository implements IAuthRepository {
       const user = User.fromDTO(data.user);
       await this.tokenStore.saveToken(data.token);
       this.setAuthHeader(data.token);
-      return Result.ok({ user, token: data.token });
+      return ok({ user, token: data.token });
     } catch (error: any) {
-      return Result.err(error.response?.data?.message || new Error('Refresh failed'));
+      return err(error.response?.data?.message || new Error('Refresh failed'));
     }
   }
 
   async getCurrentUser(token: string): Promise<Result<User, Error>> {
-    // Same as validateToken essentially
     return this.validateToken(token);
   }
 }

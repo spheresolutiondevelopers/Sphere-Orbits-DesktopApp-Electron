@@ -1,4 +1,4 @@
-import { Result, CalendarEventSchema } from '@sphere/shared';
+import { ok, err, type Result } from '@sphere/shared';
 import { CalendarEvent, ICalendarRepository } from '@sphere/domain';
 import { DatabaseClient } from '../database/DatabaseClient';
 import { EventDao } from './local/EventDao';
@@ -25,12 +25,12 @@ export class CalendarRepository implements ICalendarRepository {
     try {
       if (source === 'google') {
         const events = await this.googleApi.getEvents(startDate, endDate);
-        return Result.ok(events);
+        return ok(events);
       }
       // For outlook/apple, would implement similar logic
-      return Result.err(new Error(`Calendar source ${source} not implemented yet`));
+      return err(new Error(`Calendar source ${source} not implemented yet`));
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 
@@ -47,7 +47,7 @@ export class CalendarRepository implements ICalendarRepository {
       // Fetch remote events
       const eventsResult = await this.getEvents(source, startDate, endDate);
       if (eventsResult.isFailure()) {
-        return Result.err(eventsResult.error);
+        return err(eventsResult.error);
       }
 
       const remoteEvents = eventsResult.value;
@@ -57,14 +57,14 @@ export class CalendarRepository implements ICalendarRepository {
         try {
           await this.eventDao.upsertEvent(userID, event);
           syncedCount++;
-        } catch (err: any) {
-          errors.push(`Failed to sync event ${event.id}: ${err.message}`);
+        } catch (error: any) {
+          errors.push(`Failed to sync event ${event.id}: ${error.message}`);
         }
       }
 
-      return Result.ok({ syncedCount, errors });
+      return ok({ syncedCount, errors });
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 
@@ -75,11 +75,11 @@ export class CalendarRepository implements ICalendarRepository {
     try {
       if (source === 'google') {
         const created = await this.googleApi.createEvent(event);
-        return Result.ok(created);
+        return ok(created);
       }
-      return Result.err(new Error(`Calendar source ${source} not implemented yet`));
+      return err(new Error(`Calendar source ${source} not implemented yet`));
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 
@@ -91,11 +91,11 @@ export class CalendarRepository implements ICalendarRepository {
     try {
       if (source === 'google') {
         const updated = await this.googleApi.updateEvent(externalID, updates);
-        return Result.ok(updated);
+        return ok(updated);
       }
-      return Result.err(new Error(`Calendar source ${source} not implemented yet`));
+      return err(new Error(`Calendar source ${source} not implemented yet`));
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 
@@ -106,20 +106,20 @@ export class CalendarRepository implements ICalendarRepository {
     try {
       if (source === 'google') {
         await this.googleApi.deleteEvent(externalID);
-        return Result.ok(undefined);
+        return ok(undefined);
       }
-      return Result.err(new Error(`Calendar source ${source} not implemented yet`));
+      return err(new Error(`Calendar source ${source} not implemented yet`));
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 
   async storeSyncedEvent(userID: string, event: CalendarEvent): Promise<Result<void, Error>> {
     try {
       await this.eventDao.upsertEvent(userID, event);
-      return Result.ok(undefined);
+      return ok(undefined);
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 
@@ -130,9 +130,9 @@ export class CalendarRepository implements ICalendarRepository {
   ): Promise<Result<CalendarEvent[], Error>> {
     try {
       const events = await this.eventDao.getEvents(userID, startDate, endDate);
-      return Result.ok(events);
+      return ok(events);
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 }

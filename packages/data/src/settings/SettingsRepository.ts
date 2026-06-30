@@ -1,4 +1,4 @@
-import { Result, SettingsSchema } from '@sphere/shared';
+import { ok, err, type Result, SettingsSchema } from '@sphere/shared';
 import { Settings, ISettingsRepository } from '@sphere/domain';
 import { DatabaseClient } from '../database/DatabaseClient';
 import { SettingsStore } from './datastore/SettingsStore';
@@ -12,14 +12,14 @@ export class SettingsRepository implements ISettingsRepository {
 
   async getSettings(userID: string): Promise<Result<Settings, Error>> {
     try {
-      const settings = await this.settingsStore.getSettings(userID);
+      const settings = this.settingsStore.getSettings(userID);
       if (!settings) {
         // Return default settings if not found
-        return Result.ok(this.getDefaultSettings());
+        return ok(this.getDefaultSettings());
       }
-      return Result.ok(settings);
+      return ok(settings);
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 
@@ -28,29 +28,47 @@ export class SettingsRepository implements ISettingsRepository {
       // Validate partial updates
       const validation = SettingsSchema.partial().safeParse(updates);
       if (!validation.success) {
-        return Result.err(new Error(validation.error.message));
+        return err(new Error(validation.error.message));
       }
 
-      const currentSettings = await this.getSettings(userID);
-      if (currentSettings.isFailure()) {
-        return Result.err(currentSettings.error);
+      const currentResult = await this.getSettings(userID);
+      if (currentResult.isFailure()) {
+        return err(currentResult.error);
       }
 
-      const merged = { ...currentSettings.value, ...updates };
-      const saved = await this.settingsStore.saveSettings(userID, merged);
-      return Result.ok(saved);
+      // Merge current settings with updates
+      const current = currentResult.value;
+      const merged = {
+        theme: updates.theme || current.theme,
+        notificationsEnabled: updates.notificationsEnabled ?? current.notificationsEnabled,
+        pushNotifications: updates.pushNotifications ?? current.pushNotifications,
+        emailNotifications: updates.emailNotifications ?? current.emailNotifications,
+        googleCalendarSync: updates.googleCalendarSync ?? current.googleCalendarSync,
+        outlookCalendarSync: updates.outlookCalendarSync ?? current.outlookCalendarSync,
+        appleCalendarSync: updates.appleCalendarSync ?? current.appleCalendarSync,
+        language: updates.language || current.language,
+        timezone: updates.timezone || current.timezone,
+        defaultView: updates.defaultView || current.defaultView,
+        compactMode: updates.compactMode ?? current.compactMode,
+        reminderDefaultMinutes: updates.reminderDefaultMinutes ?? current.reminderDefaultMinutes,
+        shareUsageData: updates.shareUsageData ?? current.shareUsageData,
+        preferences: updates.preferences ? { ...current.preferences, ...updates.preferences } : current.preferences,
+      };
+
+      const saved = this.settingsStore.saveSettings(userID, merged);
+      return ok(saved);
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 
   async resetSettings(userID: string): Promise<Result<Settings, Error>> {
     try {
       const defaultSettings = this.getDefaultSettings();
-      const saved = await this.settingsStore.saveSettings(userID, defaultSettings);
-      return Result.ok(saved);
+      const saved = this.settingsStore.saveSettings(userID, defaultSettings);
+      return ok(saved);
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 
@@ -70,6 +88,6 @@ export class SettingsRepository implements ISettingsRepository {
       reminderDefaultMinutes: 15,
       shareUsageData: true,
       preferences: {},
-    };
+    } as Settings;
   }
 }

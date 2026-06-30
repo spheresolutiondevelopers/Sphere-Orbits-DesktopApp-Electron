@@ -1,4 +1,4 @@
-import { Result } from '@sphere/shared';
+import { err, type Result } from '@sphere/shared';
 import { IEventRepository } from '../repositories/IEventRepository';
 import { Event } from '../entities/Event';
 
@@ -21,13 +21,13 @@ export class CreateEventUseCase {
   async execute(input: CreateEventInput): Promise<Result<Event, Error>> {
     // Validate required fields
     if (!input.userID) {
-      return Result.err(new Error('userID is required'));
+      return err(new Error('userID is required'));
     }
     if (!input.name || input.name.trim().length === 0) {
-      return Result.err(new Error('Event name is required'));
+      return err(new Error('Event name is required'));
     }
     if (input.name.length > 255) {
-      return Result.err(new Error('Event name cannot exceed 255 characters'));
+      return err(new Error('Event name cannot exceed 255 characters'));
     }
 
     // Validate that start <= end if both provided
@@ -35,7 +35,7 @@ export class CreateEventUseCase {
       const start = new Date(input.startDateTime);
       const end = new Date(input.endDateTime);
       if (start >= end) {
-        return Result.err(new Error('Start time must be before end time'));
+        return err(new Error('Start time must be before end time'));
       }
     }
 

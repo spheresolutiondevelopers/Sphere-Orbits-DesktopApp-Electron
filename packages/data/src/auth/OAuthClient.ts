@@ -1,4 +1,4 @@
-import { Result } from '@sphere/shared';
+import { ok, err, type Result } from '@sphere/shared';
 import axios from 'axios';
 
 export interface OAuthProvider {
@@ -36,7 +36,7 @@ export class OAuthClient {
     redirectUri: string
   ): Promise<Result<{ accessToken: string; refreshToken?: string }, Error>> {
     const provider = this.providers.get(providerId);
-    if (!provider) return Result.err(new Error(`Provider ${providerId} not found`));
+    if (!provider) return err(new Error(`Provider ${providerId} not found`));
     try {
       const response = await axios.post(provider.tokenUrl, {
         client_id: provider.clientId,
@@ -46,12 +46,12 @@ export class OAuthClient {
         grant_type: 'authorization_code',
       });
       const data = response.data;
-      return Result.ok({
+      return ok({
         accessToken: data.access_token,
         refreshToken: data.refresh_token,
       });
     } catch (error: any) {
-      return Result.err(error.response?.data?.message || new Error('OAuth exchange failed'));
+      return err(error.response?.data?.message || new Error('OAuth exchange failed'));
     }
   }
 }

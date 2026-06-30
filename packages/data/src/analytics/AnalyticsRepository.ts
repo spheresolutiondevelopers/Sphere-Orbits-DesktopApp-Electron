@@ -1,4 +1,4 @@
-import { Result } from '@sphere/shared';
+import { ok, err, type Result } from '@sphere/shared';
 import { AnalyticsData, IAnalyticsRepository, ReportOptions, ReportResult } from '@sphere/domain';
 import { DatabaseClient } from '../database/DatabaseClient';
 import { ReportGenerator } from './ReportGenerator';
@@ -19,33 +19,34 @@ export class AnalyticsRepository implements IAnalyticsRepository {
       const start = new Date(options.startDate);
       const end = new Date(options.endDate);
       if (start > end) {
-        return Result.err(new Error('startDate must be before endDate'));
+        return err(new Error('startDate must be before endDate'));
       }
 
       // Get raw analytics data
       const dataResult = await this.getAnalyticsData(userID, options.startDate, options.endDate);
       if (dataResult.isFailure()) {
-        return Result.err(dataResult.error);
+        return err(dataResult.error);
       }
 
       const analyticsData = dataResult.value;
 
-      // Generate report based on format
-      if (options.format === 'json') {
-        return Result.ok({ data: analyticsData });
+      // Generate report based on format (default to 'json' if not specified)
+      const format = options.format || 'json';
+      if (format === 'json') {
+        return ok({ data: analyticsData });
       }
 
       // For PDF or CSV, generate file
       const reportUrl = await this.reportGenerator.generate(
         userID,
         analyticsData,
-        options.format,
+        format as 'pdf' | 'csv',
         options.type
       );
 
-      return Result.ok({ reportUrl });
+      return ok({ reportUrl });
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 
@@ -74,7 +75,7 @@ export class AnalyticsRepository implements IAnalyticsRepository {
         new Date(targetDate).toISOString()
       );
       if (dataResult.isFailure()) {
-        return Result.err(dataResult.error);
+        return err(dataResult.error);
       }
 
       const data = dataResult.value;
@@ -91,9 +92,9 @@ export class AnalyticsRepository implements IAnalyticsRepository {
       // Get weekly trend (last 7 days productivity scores)
       const weeklyTrend = data.dailyActivity
         .slice(-7)
-        .map((day) => this.calculateDayScore(day));
+        .map((day: any) => this.calculateDayScore(day));
 
-      return Result.ok({
+      return ok({
         score,
         tasksCompleted: data.tasksCompleted,
         tasksPending: data.tasksPending,
@@ -104,7 +105,7 @@ export class AnalyticsRepository implements IAnalyticsRepository {
         weeklyTrend,
       });
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 
@@ -114,11 +115,10 @@ export class AnalyticsRepository implements IAnalyticsRepository {
     endDate: string
   ): Promise<Result<AnalyticsData, Error>> {
     try {
-      const db = this.reportGenerator['db']; // Access via reportGenerator
       const data = await this.reportGenerator.getRawData(userID, startDate, endDate);
-      return Result.ok(data);
+      return ok(data);
     } catch (error: any) {
-      return Result.err(error);
+      return err(error);
     }
   }
 
