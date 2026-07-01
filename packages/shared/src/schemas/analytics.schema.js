@@ -1,42 +1,65 @@
-import { z } from 'zod';
-export const ProductivityReportSchema = z.object({
-    reportID: z.string().uuid(),
-    userID: z.string().uuid(),
-    reportType: z.enum(['daily', 'weekly', 'monthly', 'custom']),
-    startDate: z.string().datetime({ offset: true }),
-    endDate: z.string().datetime({ offset: true }),
-    generatedAt: z.string().datetime({ offset: true }),
-    format: z.enum(['json', 'pdf', 'csv']).default('json'),
-    data: z.object({
-        tasksCompleted: z.number().int(),
-        tasksPending: z.number().int(),
-        tasksOverdue: z.number().int(),
-        completionRate: z.number().min(0).max(100),
-        totalFocusHours: z.number(),
-        meetingsAttended: z.number().int(),
-        meetingsScheduled: z.number().int(),
-        appointmentsBooked: z.number().int(),
-        productivityScore: z.number().min(0).max(100),
-        categoryBreakdown: z.record(z.string(), z.number()),
-        dailyActivity: z.array(z.object({
-            date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-            tasksCompleted: z.number().int(),
-            focusHours: z.number(),
-            meetings: z.number().int(),
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.AnalyticsDataSchema = exports.ProductivityScoreSchema = exports.ProductivityReportSchema = void 0;
+const zod_1 = require("zod");
+exports.ProductivityReportSchema = zod_1.z.object({
+    reportID: zod_1.z.string().uuid(),
+    userID: zod_1.z.string().uuid(),
+    reportType: zod_1.z.enum(['daily', 'weekly', 'monthly', 'custom']),
+    startDate: zod_1.z.string().datetime({ offset: true }),
+    endDate: zod_1.z.string().datetime({ offset: true }),
+    generatedAt: zod_1.z.string().datetime({ offset: true }),
+    format: zod_1.z.enum(['json', 'pdf', 'csv']).default('json'),
+    data: zod_1.z.object({
+        tasksCompleted: zod_1.z.number().int(),
+        tasksPending: zod_1.z.number().int(),
+        tasksOverdue: zod_1.z.number().int(),
+        completionRate: zod_1.z.number().min(0).max(100),
+        totalFocusHours: zod_1.z.number(),
+        meetingsAttended: zod_1.z.number().int(),
+        meetingsScheduled: zod_1.z.number().int(),
+        appointmentsBooked: zod_1.z.number().int(),
+        productivityScore: zod_1.z.number().min(0).max(100),
+        categoryBreakdown: zod_1.z.record(zod_1.z.string(), zod_1.z.number()),
+        dailyActivity: zod_1.z.array(zod_1.z.object({
+            date: zod_1.z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+            tasksCompleted: zod_1.z.number().int(),
+            focusHours: zod_1.z.number(),
+            meetings: zod_1.z.number().int(),
         })),
     }),
-    fileUrl: z.string().url().optional().nullable(),
-    isDeleted: z.boolean().default(false),
-    createdAt: z.string().datetime({ offset: true }),
-    updatedAt: z.string().datetime({ offset: true }),
+    fileUrl: zod_1.z.string().url().optional().nullable(),
+    isDeleted: zod_1.z.boolean().default(false),
+    createdAt: zod_1.z.string().datetime({ offset: true }),
+    updatedAt: zod_1.z.string().datetime({ offset: true }),
 });
-export const ProductivityScoreSchema = z.object({
-    score: z.number().min(0).max(100),
-    tasksCompleted: z.number().int(),
-    tasksPending: z.number().int(),
-    meetingsAttended: z.number().int(),
-    focusHours: z.number(),
-    streakDays: z.number().int(),
-    bestTimeOfDay: z.string().regex(/^\d{2}:\d{2}:\d{2}$/),
-    weeklyTrend: z.array(z.number()),
+exports.ProductivityScoreSchema = zod_1.z.object({
+    score: zod_1.z.number().min(0).max(100),
+    tasksCompleted: zod_1.z.number().int(),
+    tasksPending: zod_1.z.number().int(),
+    meetingsAttended: zod_1.z.number().int(),
+    focusHours: zod_1.z.number(),
+    streakDays: zod_1.z.number().int(),
+    bestTimeOfDay: zod_1.z.string().regex(/^\d{2}:\d{2}:\d{2}$/),
+    weeklyTrend: zod_1.z.array(zod_1.z.number()),
 });
+// 👇 Add this new schema
+exports.AnalyticsDataSchema = zod_1.z.object({
+    tasksCompleted: zod_1.z.number().int(),
+    tasksPending: zod_1.z.number().int(),
+    tasksOverdue: zod_1.z.number().int(),
+    completionRate: zod_1.z.number().min(0).max(100),
+    totalFocusHours: zod_1.z.number(),
+    meetingsAttended: zod_1.z.number().int(),
+    meetingsScheduled: zod_1.z.number().int(),
+    appointmentsBooked: zod_1.z.number().int(),
+    productivityScore: zod_1.z.number().min(0).max(100),
+    categoryBreakdown: zod_1.z.record(zod_1.z.string(), zod_1.z.number()),
+    dailyActivity: zod_1.z.array(zod_1.z.object({
+        date: zod_1.z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+        tasksCompleted: zod_1.z.number().int(),
+        focusHours: zod_1.z.number(),
+        meetings: zod_1.z.number().int(),
+    })),
+});
+//# sourceMappingURL=analytics.schema.js.map

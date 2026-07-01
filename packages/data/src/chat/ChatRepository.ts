@@ -3,6 +3,7 @@ import { Message, IChatRepository } from '@sphere/domain';
 import { DatabaseClient } from '../database/DatabaseClient';
 import { MessageDao } from './local/MessageDao';
 import { WebSocketClient } from './websocket/WebSocketClient';
+import { randomUUID } from 'node:crypto';
 
 export class ChatRepository implements IChatRepository {
   private messageDao: MessageDao;

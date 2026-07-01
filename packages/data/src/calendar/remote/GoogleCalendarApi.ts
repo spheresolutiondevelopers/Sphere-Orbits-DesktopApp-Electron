@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto';
+import { randomUUID } from 'node:crypto';
 import axios, { AxiosInstance } from 'axios';
 import { CalendarEvent } from '@sphere/domain';
 
@@ -21,6 +21,7 @@ export class GoogleCalendarApi {
 
   /**
    * Fetches events from Google Calendar for a date range.
+   * Returns CalendarEvent instances.
    */
   async getEvents(startDate: string, endDate: string): Promise<CalendarEvent[]> {
     if (!this.accessToken) {
@@ -42,6 +43,7 @@ export class GoogleCalendarApi {
 
   /**
    * Creates a new event in Google Calendar.
+   * Returns a CalendarEvent instance.
    */
   async createEvent(
     event: Omit<CalendarEvent, 'id' | 'source' | 'externalID' | 'createdAt' | 'updatedAt'>
@@ -73,6 +75,7 @@ export class GoogleCalendarApi {
 
   /**
    * Updates an existing event in Google Calendar.
+   * Returns a CalendarEvent instance.
    */
   async updateEvent(
     externalID: string,
@@ -117,29 +120,47 @@ export class GoogleCalendarApi {
   }
 
   /**
-   * Maps a Google Calendar event to our CalendarEvent format.
+   * Maps a Google Calendar event to a CalendarEvent instance.
+   * 
+   * IMPORTANT: The CalendarEvent class constructor expects:
+   * - color: string | undefined (not null)
+   * - recurrenceRule: string | null | undefined
    */
   private mapGoogleEventToCalendarEvent(item: any): CalendarEvent {
-    return {
-      id: randomUUID(),
-      source: 'google',
-      externalID: item.id,
-      title: item.summary || 'Untitled Event',
-      description: item.description || null,
-      startDateTime: item.start.dateTime || item.start.date,
-      endDateTime: item.end.dateTime || item.end.date,
-      allDayEvent: !!item.start.date,
-      location: item.location || null,
-      meetingLink: null, // Google Meet links are in hangoutLink
-      color: this.mapGoogleColorToColor(item.colorId),
-      organizer: item.organizer?.email || null,
-      attendees: item.attendees?.map((a: any) => a.email) || [],
-      status: item.status || 'confirmed',
-      recurrenceRule: item.recurrence?.[0] || null,
-      isRecurring: !!item.recurringEventId || !!item.recurrence,
-      createdAt: item.created || new Date().toISOString(),
-      updatedAt: item.updated || new Date().toISOString(),
-    };
+    // Convert colorId to color string, or undefined if not found
+    const color = this.mapGoogleColorToColor(item.colorId) || undefined;
+    
+    // Get attendees as string array
+    const attendees: string[] = item.attendees?.map((a: any) => a.email) || [];
+
+    // Determine if it's an all-day event (has date but not dateTime)
+    const allDayEvent = !!item.start?.date;
+
+    // Get the recurrence rule
+    const recurrenceRule = item.recurrence?.[0] || null;
+
+    // Create a CalendarEvent instance using the class constructor
+    // This ensures we get a proper domain object with all methods
+    return new CalendarEvent(
+      randomUUID(),                    // id (generate new UUID)
+      'google',                        // source
+      item.id,                         // externalID
+      item.summary || 'Untitled Event', // title
+      item.start?.dateTime || item.start?.date || new Date().toISOString(), // startDateTime
+      item.end?.dateTime || item.end?.date || new Date().toISOString(),   // endDateTime
+      allDayEvent,                     // allDayEvent
+      item.status || 'confirmed',      // status
+      !!item.recurringEventId || !!item.recurrence, // isRecurring
+      item.created || new Date().toISOString(), // createdAt
+      item.updated || new Date().toISOString(), // updatedAt
+      item.description || null,        // description (optional)
+      item.location || null,           // location (optional)
+      null,                            // meetingLink (Google Meet links not available via API)
+      color,                           // color (string | undefined)
+      item.organizer?.email || null,   // organizer (optional)
+      attendees,                       // attendees (optional)
+      recurrenceRule                   // recurrenceRule (optional)
+    );
   }
 
   /**
@@ -147,23 +168,24 @@ export class GoogleCalendarApi {
    */
   private mapColorToGoogleColor(color: string): string | undefined {
     const mapping: Record<string, string> = {
-      '#2196F3': '1', // Blue
-      '#4CAF50': '2', // Green
-      '#FFC107': '3', // Yellow
-      '#F44336': '4', // Red
-      '#9C27B0': '5', // Purple
-      '#FF9800': '6', // Orange
-      '#00BCD4': '7', // Cyan
-      '#FF6B8A': '8', // Pink
-      '#7C6CF8': '9', // Indigo
+      '#2196F3': '1',
+      '#4CAF50': '2',
+      '#FFC107': '3',
+      '#F44336': '4',
+      '#9C27B0': '5',
+      '#FF9800': '6',
+      '#00BCD4': '7',
+      '#FF6B8A': '8',
+      '#7C6CF8': '9',
     };
     return mapping[color];
   }
 
   /**
    * Maps Google Calendar colorId to our color.
+   * Returns string | undefined (not null) to match domain type.
    */
-  private mapGoogleColorToColor(colorId: string | undefined): string | null {
+  private mapGoogleColorToColor(colorId: string | undefined): string | undefined {
     const mapping: Record<string, string> = {
       '1': '#2196F3',
       '2': '#4CAF50',
@@ -175,6 +197,7 @@ export class GoogleCalendarApi {
       '8': '#FF6B8A',
       '9': '#7C6CF8',
     };
-    return colorId ? mapping[colorId] || null : null;
+    // Return undefined instead of null to match domain type
+    return colorId ? mapping[colorId] : undefined;
   }
 }

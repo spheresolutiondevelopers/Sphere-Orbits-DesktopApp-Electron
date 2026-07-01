@@ -1,5 +1,8 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.IPC_CHANNELS = void 0;
 // All IPC channel names
-export const IPC_CHANNELS = {
+exports.IPC_CHANNELS = {
     // Auth
     AUTH_LOGIN: 'ipc:auth:login',
     AUTH_LOGOUT: 'ipc:auth:logout',
@@ -47,3 +50,4 @@ export const IPC_CHANNELS = {
     SYNC_PUSH: 'ipc:sync:push',
     SYNC_PULL: 'ipc:sync:pull',
 };
+//# sourceMappingURL=channels.js.map

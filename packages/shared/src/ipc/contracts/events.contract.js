@@ -1,38 +1,42 @@
-import { z } from 'zod';
-import { EventSchema } from '../../schemas';
-export const GetEventsRequestSchema = z.object({
-    filters: z.object({
-        status: z.enum(['planned', 'ongoing', 'completed', 'cancelled']).optional(),
-        categoryID: z.string().uuid().optional(),
-        startDateFrom: z.string().datetime().optional(),
-        startDateTo: z.string().datetime().optional(),
-        search: z.string().optional(),
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.EventConflictResponseSchema = exports.DeleteEventRequestSchema = exports.UpdateEventRequestSchema = exports.CreateEventRequestSchema = exports.GetEventsResponseSchema = exports.GetEventsRequestSchema = void 0;
+const zod_1 = require("zod");
+const schemas_1 = require("../../schemas");
+exports.GetEventsRequestSchema = zod_1.z.object({
+    filters: zod_1.z.object({
+        status: zod_1.z.enum(['planned', 'ongoing', 'completed', 'cancelled']).optional(),
+        categoryID: zod_1.z.string().uuid().optional(),
+        startDateFrom: zod_1.z.string().datetime().optional(),
+        startDateTo: zod_1.z.string().datetime().optional(),
+        search: zod_1.z.string().optional(),
     }).optional(),
-    pagination: z.object({
-        limit: z.number().int().min(1).max(100).default(20),
-        offset: z.number().int().min(0).default(0),
+    pagination: zod_1.z.object({
+        limit: zod_1.z.number().int().min(1).max(100).default(20),
+        offset: zod_1.z.number().int().min(0).default(0),
     }).optional(),
 });
-export const GetEventsResponseSchema = z.object({
-    events: z.array(EventSchema),
-    total: z.number().int(),
+exports.GetEventsResponseSchema = zod_1.z.object({
+    events: zod_1.z.array(schemas_1.EventSchema),
+    total: zod_1.z.number().int(),
 });
-export const CreateEventRequestSchema = EventSchema.omit({
+exports.CreateEventRequestSchema = schemas_1.EventSchema.omit({
     eventID: true,
     userID: true,
     createdAt: true,
     updatedAt: true,
     isDeleted: true,
 });
-export const UpdateEventRequestSchema = z.object({
-    eventID: z.string().uuid(),
-    updates: CreateEventRequestSchema.partial(),
+exports.UpdateEventRequestSchema = zod_1.z.object({
+    eventID: zod_1.z.string().uuid(),
+    updates: exports.CreateEventRequestSchema.partial(),
 });
-export const DeleteEventRequestSchema = z.object({
-    eventID: z.string().uuid(),
+exports.DeleteEventRequestSchema = zod_1.z.object({
+    eventID: zod_1.z.string().uuid(),
 });
-export const EventConflictResponseSchema = z.object({
-    status: z.literal('conflict'),
-    serverEntity: EventSchema,
-    clientEntity: EventSchema,
+exports.EventConflictResponseSchema = zod_1.z.object({
+    status: zod_1.z.literal('conflict'),
+    serverEntity: schemas_1.EventSchema,
+    clientEntity: schemas_1.EventSchema,
 });
+//# sourceMappingURL=events.contract.js.map

@@ -59,7 +59,28 @@ export type { PaginatedResult, PaginationOptions } from './tasks/repositories/IT
 // Also export EventFilters from the events module
 
 // Re-export calendar and event types
-export type { CalendarEvent } from './calendar/entities/CalendarEvent';
+
 export type { ICalendarRepository } from './calendar/repositories/ICalendarRepository';
-export type { Event } from './events/entities/Event';
+
 export type { IEventRepository, EventFilters } from './events/repositories/IEventRepository';
+
+// Re-export calendar and event types that are needed by the data package
+// Re-export the class (value) so it can be instantiated
+export { CalendarEvent } from './calendar/entities/CalendarEvent';
+export { Event } from './events/entities/Event';
+export { Meeting } from './meetings/entities/Meeting';
+export { Appointment } from './appointments/entities/Appointment';
+export { Note } from './notes/entities/Note';
+export { Task } from './tasks/entities/Task';
+export { User } from './auth/entities/User';
+export { Settings } from './settings/entities/Settings';
+
+// Also export their types (for type-only usage)
+export type { CalendarEvent as CalendarEventType } from './calendar/entities/CalendarEvent';
+export type { Event as EventType } from './events/entities/Event';
+export type { Meeting as MeetingType } from './meetings/entities/Meeting';
+export type { Appointment as AppointmentType } from './appointments/entities/Appointment';
+export type { Note as NoteType } from './notes/entities/Note';
+export type { Task as TaskType } from './tasks/entities/Task';
+export type { User as UserType } from './auth/entities/User';
+export type { Settings as SettingsType } from './settings/entities/Settings';

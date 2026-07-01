@@ -1,80 +1,36 @@
-/**
- * A simple Result monad for error handling.
- * This pattern avoids throwing exceptions and makes errors explicit.
- */
-export class Success {
-    value;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Failure = exports.Success = void 0;
+exports.ok = ok;
+exports.err = err;
+class Success {
     constructor(value) {
         this.value = value;
     }
-    isSuccess() {
-        return true;
-    }
-    isFailure() {
-        return false;
-    }
-    getOrElse(fallback) {
-        return this.value;
-    }
-    getOrThrow() {
-        return this.value;
-    }
-    map(fn) {
-        return new Success(fn(this.value));
-    }
-    flatMap(fn) {
-        return fn(this.value);
-    }
+    isSuccess() { return true; }
+    isFailure() { return false; }
+    getOrElse(_fallback) { return this.value; }
+    getOrThrow() { return this.value; }
+    map(fn) { return new Success(fn(this.value)); }
+    flatMap(fn) { return fn(this.value); }
 }
-export class Failure {
-    error;
+exports.Success = Success;
+class Failure {
     constructor(error) {
         this.error = error;
     }
-    isSuccess() {
-        return false;
-    }
-    isFailure() {
-        return true;
-    }
-    getOrElse(fallback) {
-        return fallback;
-    }
-    getOrThrow() {
-        throw this.error;
-    }
-    map(_fn) {
-        return this;
-    }
-    flatMap(_fn) {
-        return this;
-    }
+    isSuccess() { return false; }
+    isFailure() { return true; }
+    getOrElse(fallback) { return fallback; }
+    getOrThrow() { throw this.error; }
+    map(_fn) { return this; }
+    flatMap(_fn) { return this; }
 }
-export function ok(value) {
+exports.Failure = Failure;
+function ok(value) {
     return new Success(value);
 }
-export function err(error) {
+function err(error) {
     return new Failure(error);
 }
-/**
- * Utility to wrap a try/catch block into a Result.
- */
-export function tryCatch(fn) {
-    try {
-        return ok(fn());
-    }
-    catch (e) {
-        return err(e instanceof Error ? e : new Error(String(e)));
-    }
-}
-/**
- * Async version of tryCatch.
- */
-export async function tryCatchAsync(fn) {
-    try {
-        return ok(await fn());
-    }
-    catch (e) {
-        return err(e instanceof Error ? e : new Error(String(e)));
-    }
-}
+//# sourceMappingURL=result.js.map

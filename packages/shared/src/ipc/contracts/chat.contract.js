@@ -1,21 +1,25 @@
-import { z } from 'zod';
-import { MessageSchema } from '../../schemas';
-export const SendMessageRequestSchema = z.object({
-    conversationID: z.string().uuid(),
-    content: z.string().min(1).max(4000),
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ObserveMessagesRequestSchema = exports.GetMessagesResponseSchema = exports.GetMessagesRequestSchema = exports.SendMessageResponseSchema = exports.SendMessageRequestSchema = void 0;
+const zod_1 = require("zod");
+const schemas_1 = require("../../schemas");
+exports.SendMessageRequestSchema = zod_1.z.object({
+    conversationID: zod_1.z.string().uuid(),
+    content: zod_1.z.string().min(1).max(4000),
 });
-export const SendMessageResponseSchema = z.object({
-    message: MessageSchema,
+exports.SendMessageResponseSchema = zod_1.z.object({
+    message: schemas_1.MessageSchema,
 });
-export const GetMessagesRequestSchema = z.object({
-    conversationID: z.string().uuid(),
-    limit: z.number().int().min(1).max(100).default(50),
-    before: z.string().datetime().optional(),
+exports.GetMessagesRequestSchema = zod_1.z.object({
+    conversationID: zod_1.z.string().uuid(),
+    limit: zod_1.z.number().int().min(1).max(100).default(50),
+    before: zod_1.z.string().datetime().optional(),
 });
-export const GetMessagesResponseSchema = z.object({
-    messages: z.array(MessageSchema),
-    hasMore: z.boolean(),
+exports.GetMessagesResponseSchema = zod_1.z.object({
+    messages: zod_1.z.array(schemas_1.MessageSchema),
+    hasMore: zod_1.z.boolean(),
 });
-export const ObserveMessagesRequestSchema = z.object({
-    conversationID: z.string().uuid(),
+exports.ObserveMessagesRequestSchema = zod_1.z.object({
+    conversationID: zod_1.z.string().uuid(),
 });
+//# sourceMappingURL=chat.contract.js.map

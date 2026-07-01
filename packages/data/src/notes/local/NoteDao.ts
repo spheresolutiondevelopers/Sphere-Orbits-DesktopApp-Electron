@@ -1,13 +1,10 @@
-import { randomUUID } from 'crypto';
+import { randomUUID } from 'node:crypto';
 import { DatabaseClient } from '../../database/DatabaseClient';
 import { Note, NoteFilters, PaginationOptions, PaginatedResult } from '@sphere/domain';
 
 export class NoteDao {
   constructor(private readonly db: DatabaseClient) {}
 
-  /**
-   * Gets notes with filters and pagination.
-   */
   getNotes(
     userID: string,
     filters?: NoteFilters,
@@ -40,7 +37,6 @@ export class NoteDao {
           }
         }
       } else if (filters?.entityID) {
-        // If only entityID is provided without type, search all association columns
         conditions.push(`
           (task_id = ? OR event_id = ? OR appointment_id = ? OR meeting_id = ?)
         `);
@@ -64,7 +60,6 @@ export class NoteDao {
 
       sql += ' ORDER BY created_at DESC';
 
-      // Count total
       const countSql = sql.replace(
         /SELECT[\s\S]*?FROM/,
         'SELECT COUNT(*) as total FROM'
@@ -73,7 +68,6 @@ export class NoteDao {
       const totalRow = countStmt.get(...params) as { total: number };
       const total = totalRow?.total || 0;
 
-      // Apply pagination
       if (pagination?.limit !== undefined) {
         sql += ' LIMIT ?';
         params.push(pagination.limit);
@@ -85,14 +79,11 @@ export class NoteDao {
 
       const stmt = db.prepare(sql);
       const rows = stmt.all(...params) as any[];
-      const notes = rows.map(this.mapRowToNote);
+      const notes = rows.map((row) => this.mapRowToNote(row));
       return { items: notes, total };
     });
   }
 
-  /**
-   * Gets a single note by ID.
-   */
   getNoteById(noteID: string, userID: string): Note | null {
     const db = this.db.getDB();
     const stmt = db.prepare(`
@@ -107,9 +98,6 @@ export class NoteDao {
     return this.mapRowToNote(row);
   }
 
-  /**
-   * Creates a new note.
-   */
   createNote(
     note: Omit<Note, 'noteID' | 'createdAt' | 'updatedAt'>
   ): Note {
@@ -137,12 +125,21 @@ export class NoteDao {
       now
     );
 
-    return { ...note, noteID: id, createdAt: now, updatedAt: now, isDeleted: false };
+    return this.mapRowToNote({
+      id,
+      user_id: note.userID,
+      title: note.title || null,
+      content: note.content,
+      task_id: note.taskID || null,
+      event_id: note.eventID || null,
+      appointment_id: note.appointmentID || null,
+      meeting_id: note.meetingID || null,
+      is_deleted: 0,
+      created_at: now,
+      updated_at: now,
+    });
   }
 
-  /**
-   * Updates an existing note.
-   */
   updateNote(noteID: string, updates: Partial<Note>): Note | null {
     const db = this.db.getDB();
     const now = new Date().toISOString();
@@ -182,7 +179,6 @@ export class NoteDao {
       return null;
     }
 
-    // Fetch the updated note
     const getStmt = db.prepare(`
       SELECT
         id, user_id, title, content, task_id, event_id,
@@ -194,9 +190,6 @@ export class NoteDao {
     return this.mapRowToNote(row);
   }
 
-  /**
-   * Soft-deletes a note.
-   */
   softDelete(noteID: string, userID: string): void {
     const db = this.db.getDB();
     const stmt = db.prepare(`
@@ -205,18 +198,12 @@ export class NoteDao {
     stmt.run(new Date().toISOString(), noteID, userID);
   }
 
-  /**
-   * Hard-deletes a note.
-   */
   hardDelete(noteID: string, userID: string): void {
     const db = this.db.getDB();
     const stmt = db.prepare('DELETE FROM notes WHERE id = ? AND user_id = ?');
     stmt.run(noteID, userID);
   }
 
-  /**
-   * Gets notes linked to a specific entity.
-   */
   getNotesForEntity(
     userID: string,
     entityType: 'task' | 'event' | 'appointment' | 'meeting',
@@ -243,12 +230,9 @@ export class NoteDao {
       ORDER BY created_at DESC
     `);
     const rows = stmt.all(userID, entityID) as any[];
-    return rows.map(this.mapRowToNote);
+    return rows.map((row) => this.mapRowToNote(row));
   }
 
-  /**
-   * Gets notes that need to be synced.
-   */
   getNotesForSync(userID: string): Note[] {
     const db = this.db.getDB();
     const stmt = db.prepare(`
@@ -259,12 +243,9 @@ export class NoteDao {
       WHERE user_id = ? AND is_deleted = 0 AND external_sync_status != 'synced'
     `);
     const rows = stmt.all(userID) as any[];
-    return rows.map(this.mapRowToNote);
+    return rows.map((row) => this.mapRowToNote(row));
   }
 
-  /**
-   * Marks a note as synced.
-   */
   markSynced(noteID: string): void {
     const db = this.db.getDB();
     const stmt = db.prepare(`
@@ -274,21 +255,27 @@ export class NoteDao {
   }
 
   /**
-   * Maps a database row to a Note object.
+   * Maps a database row to a Note instance.
+   * This creates a proper domain object with all methods.
    */
   private mapRowToNote(row: any): Note {
-    return {
-      noteID: row.id,
-      userID: row.user_id,
-      title: row.title || null,
-      content: row.content,
-      taskID: row.task_id || null,
-      eventID: row.event_id || null,
-      appointmentID: row.appointment_id || null,
-      meetingID: row.meeting_id || null,
-      isDeleted: row.is_deleted === 1,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at,
-    };
+    // Note constructor expects:
+    // constructor(
+    //   noteID, userID, content, isDeleted, createdAt, updatedAt,
+    //   title?, taskID?, eventID?, appointmentID?, meetingID?
+    // )
+    return new Note(
+      row.id,                              // noteID
+      row.user_id,                         // userID
+      row.content,                         // content
+      row.is_deleted === 1,                // isDeleted
+      row.created_at,                      // createdAt
+      row.updated_at,                      // updatedAt
+      row.title || null,                   // title (optional)
+      row.task_id || null,                 // taskID (optional)
+      row.event_id || null,                // eventID (optional)
+      row.appointment_id || null,          // appointmentID (optional)
+      row.meeting_id || null               // meetingID (optional)
+    );
   }
 }

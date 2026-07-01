@@ -13,8 +13,8 @@
     "@sphere/data": "workspace:*",
     "@sphere/domain": "workspace:*",
     "@sphere/shared": "workspace:*",
+    "axios": "^1.7.2",
     "better-sqlite3": "^12.11.1",
-    "electron": "^42.5.0",
     "electron-store": "^11.0.2",
     "keytar": "^7.9.0"
   },
@@ -22,6 +22,7 @@
     "@types/better-sqlite3": "^7.6.9",
     "@types/keytar": "^4.0.4",
     "@types/node": "^26.0.1",
+    "electron": "^42.5.2",
     "typescript": "^6.0.3",
     "vite": "^8.1.0"
   }

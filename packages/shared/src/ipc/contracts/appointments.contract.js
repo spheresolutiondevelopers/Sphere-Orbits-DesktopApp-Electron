@@ -1,38 +1,42 @@
-import { z } from 'zod';
-import { AppointmentSchema } from '../../schemas';
-export const GetAppointmentsRequestSchema = z.object({
-    filters: z.object({
-        status: z.enum(['scheduled', 'confirmed', 'cancelled', 'completed', 'rescheduled']).optional(),
-        appointmentType: z.enum(['general', 'doctor', 'business', 'personal']).optional(),
-        startDateFrom: z.string().datetime().optional(),
-        startDateTo: z.string().datetime().optional(),
-        search: z.string().optional(),
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.AppointmentConflictResponseSchema = exports.DeleteAppointmentRequestSchema = exports.UpdateAppointmentRequestSchema = exports.CreateAppointmentRequestSchema = exports.GetAppointmentsResponseSchema = exports.GetAppointmentsRequestSchema = void 0;
+const zod_1 = require("zod");
+const schemas_1 = require("../../schemas");
+exports.GetAppointmentsRequestSchema = zod_1.z.object({
+    filters: zod_1.z.object({
+        status: zod_1.z.enum(['scheduled', 'confirmed', 'cancelled', 'completed', 'rescheduled']).optional(),
+        appointmentType: zod_1.z.enum(['general', 'doctor', 'business', 'personal']).optional(),
+        startDateFrom: zod_1.z.string().datetime().optional(),
+        startDateTo: zod_1.z.string().datetime().optional(),
+        search: zod_1.z.string().optional(),
     }).optional(),
-    pagination: z.object({
-        limit: z.number().int().min(1).max(100).default(20),
-        offset: z.number().int().min(0).default(0),
+    pagination: zod_1.z.object({
+        limit: zod_1.z.number().int().min(1).max(100).default(20),
+        offset: zod_1.z.number().int().min(0).default(0),
     }).optional(),
 });
-export const GetAppointmentsResponseSchema = z.object({
-    appointments: z.array(AppointmentSchema),
-    total: z.number().int(),
+exports.GetAppointmentsResponseSchema = zod_1.z.object({
+    appointments: zod_1.z.array(schemas_1.AppointmentSchema),
+    total: zod_1.z.number().int(),
 });
-export const CreateAppointmentRequestSchema = AppointmentSchema.omit({
+exports.CreateAppointmentRequestSchema = schemas_1.AppointmentSchema.omit({
     appointmentID: true,
     userID: true,
     createdAt: true,
     updatedAt: true,
     isDeleted: true,
 });
-export const UpdateAppointmentRequestSchema = z.object({
-    appointmentID: z.string().uuid(),
-    updates: CreateAppointmentRequestSchema.partial(),
+exports.UpdateAppointmentRequestSchema = zod_1.z.object({
+    appointmentID: zod_1.z.string().uuid(),
+    updates: exports.CreateAppointmentRequestSchema.partial(),
 });
-export const DeleteAppointmentRequestSchema = z.object({
-    appointmentID: z.string().uuid(),
+exports.DeleteAppointmentRequestSchema = zod_1.z.object({
+    appointmentID: zod_1.z.string().uuid(),
 });
-export const AppointmentConflictResponseSchema = z.object({
-    status: z.literal('conflict'),
-    serverEntity: AppointmentSchema,
-    clientEntity: AppointmentSchema,
+exports.AppointmentConflictResponseSchema = zod_1.z.object({
+    status: zod_1.z.literal('conflict'),
+    serverEntity: schemas_1.AppointmentSchema,
+    clientEntity: schemas_1.AppointmentSchema,
 });
+//# sourceMappingURL=appointments.contract.js.map

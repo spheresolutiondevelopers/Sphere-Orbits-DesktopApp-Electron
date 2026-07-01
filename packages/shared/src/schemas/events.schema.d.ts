@@ -1,0 +1,52 @@
+import { z } from 'zod';
+export declare const EventSchema: z.ZodObject<{
+    eventID: z.ZodString;
+    userID: z.ZodString;
+    categoryID: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+    taskID: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+    name: z.ZodString;
+    format: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+    planningNotes: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+    startDateTime: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+    endDateTime: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+    status: z.ZodDefault<z.ZodEnum<["planned", "ongoing", "completed", "cancelled"]>>;
+    isRecurring: z.ZodDefault<z.ZodBoolean>;
+    recurrencePattern: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+    isDeleted: z.ZodDefault<z.ZodBoolean>;
+    createdAt: z.ZodString;
+    updatedAt: z.ZodString;
+}, "strip", z.ZodTypeAny, {
+    userID: string;
+    isDeleted: boolean;
+    createdAt: string;
+    updatedAt: string;
+    status: "completed" | "cancelled" | "planned" | "ongoing";
+    isRecurring: boolean;
+    eventID: string;
+    name: string;
+    taskID?: string | null | undefined;
+    categoryID?: string | null | undefined;
+    startDateTime?: string | null | undefined;
+    endDateTime?: string | null | undefined;
+    recurrencePattern?: string | null | undefined;
+    format?: string | null | undefined;
+    planningNotes?: string | null | undefined;
+}, {
+    userID: string;
+    createdAt: string;
+    updatedAt: string;
+    eventID: string;
+    name: string;
+    isDeleted?: boolean | undefined;
+    status?: "completed" | "cancelled" | "planned" | "ongoing" | undefined;
+    taskID?: string | null | undefined;
+    isRecurring?: boolean | undefined;
+    categoryID?: string | null | undefined;
+    startDateTime?: string | null | undefined;
+    endDateTime?: string | null | undefined;
+    recurrencePattern?: string | null | undefined;
+    format?: string | null | undefined;
+    planningNotes?: string | null | undefined;
+}>;
+export type Event = z.infer<typeof EventSchema>;
+//# sourceMappingURL=events.schema.d.ts.map

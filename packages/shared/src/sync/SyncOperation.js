@@ -1,7 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.createSyncOperation = createSyncOperation;
 /**
  * Factory to create a new sync operation.
  */
-export function createSyncOperation(entityType, operation, entityID, payload) {
+function createSyncOperation(entityType, operation, entityID, payload) {
     return {
         entityType,
         operation,
@@ -12,3 +15,4 @@ export function createSyncOperation(entityType, operation, entityID, payload) {
         status: 'pending',
     };
 }
+//# sourceMappingURL=SyncOperation.js.map

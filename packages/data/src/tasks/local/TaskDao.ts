@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto';
+import { randomUUID } from 'node:crypto';
 import { DatabaseClient } from '../../database/DatabaseClient';
 import { Task, TaskFilters, PaginationOptions, PaginatedResult } from '@sphere/domain';
 
@@ -7,6 +7,7 @@ export class TaskDao {
 
   /**
    * Gets tasks with filters and pagination.
+   * Returns PaginatedResult<Task> with proper Task instances.
    */
   getTasks(
     userID: string,
@@ -86,13 +87,15 @@ export class TaskDao {
       const stmt = db.prepare(sql);
       const rows = stmt.all(...params) as any[];
 
-      const tasks = rows.map(this.mapRowToTask);
+      // Map each row to a Task instance using the domain class
+      const tasks = rows.map((row) => this.mapRowToTask(row));
       return { items: tasks, total };
     });
   }
 
   /**
    * Gets a single task by ID.
+   * Returns a Task instance or null.
    */
   getTaskById(taskID: string, userID: string): Task | null {
     const db = this.db.getDB();
@@ -115,6 +118,7 @@ export class TaskDao {
 
   /**
    * Creates a new task.
+   * Returns a Task instance.
    */
   createTask(
     task: Omit<Task, 'taskID' | 'createdAt' | 'updatedAt'>
@@ -172,11 +176,47 @@ export class TaskDao {
       now
     );
 
-    return { ...task, taskID: id, createdAt: now, updatedAt: now, isDeleted: false };
+    // Return the created task as a proper Task instance
+    return this.mapRowToTask({
+      id,
+      user_id: task.userID,
+      title: task.title,
+      description: task.description || null,
+      task_type: task.taskType || 'general',
+      priority_level: task.priorityLevel || 'medium',
+      status: task.status || 'pending',
+      completion_percentage: task.completionPercentage || 0,
+      due_date: task.dueDate || null,
+      due_time: task.dueTime || null,
+      start_date: task.startDate || null,
+      start_time: task.startTime || null,
+      end_date: task.endDate || null,
+      end_time: task.endTime || null,
+      location_name: task.locationName || null,
+      location_address: task.locationAddress || null,
+      latitude: task.latitude || null,
+      longitude: task.longitude || null,
+      estimated_duration_minutes: task.estimatedDurationMinutes || null,
+      actual_duration_minutes: task.actualDurationMinutes || null,
+      time_spent_minutes: task.timeSpentMinutes || 0,
+      is_recurring: task.isRecurring ? 1 : 0,
+      recurrence_rule: task.recurrenceRule || null,
+      parent_task_id: task.parentTaskID || null,
+      external_id: task.externalID || null,
+      external_source: task.externalSource || null,
+      external_sync_status: task.externalSyncStatus || 'not_synced',
+      tags: task.tags || null,
+      notes: task.notes || null,
+      category_id: task.categoryID || null,
+      is_deleted: 0,
+      created_at: now,
+      updated_at: now,
+    });
   }
 
   /**
    * Updates an existing task.
+   * Returns the updated Task instance or null.
    */
   updateTask(taskID: string, updates: Partial<Task>): Task | null {
     const db = this.db.getDB();
@@ -196,6 +236,7 @@ export class TaskDao {
 
     for (const key of allowedFields) {
       if (key in updates && updates[key as keyof Task] !== undefined) {
+        // Convert camelCase to snake_case for SQL
         const snakeKey = key.replace(/[A-Z]/g, (c) => '_' + c.toLowerCase());
         fields.push(`${snakeKey} = ?`);
         const value = updates[key as keyof Task];
@@ -226,7 +267,21 @@ export class TaskDao {
     }
 
     // Fetch the updated task
-    return this.getTaskById(taskID, updates.userID || '');
+    // We need userID to fetch, but we don't have it; we'll fetch without userID filter
+    const getStmt = db.prepare(`
+      SELECT
+        id, user_id, title, description, task_type, priority_level,
+        status, completion_percentage, due_date, due_time, start_date,
+        start_time, end_date, end_time, location_name, location_address,
+        latitude, longitude, estimated_duration_minutes, actual_duration_minutes,
+        time_spent_minutes, is_recurring, recurrence_rule, parent_task_id,
+        external_id, external_source, external_sync_status, tags, notes,
+        category_id, is_deleted, created_at, updated_at
+      FROM tasks WHERE id = ?
+    `);
+    const row = getStmt.get(taskID) as any;
+    if (!row) return null;
+    return this.mapRowToTask(row);
   }
 
   /**
@@ -267,7 +322,7 @@ export class TaskDao {
       WHERE user_id = ? AND external_sync_status != 'synced' AND is_deleted = 0
     `);
     const rows = stmt.all(userID) as any[];
-    return rows.map(this.mapRowToTask);
+    return rows.map((row) => this.mapRowToTask(row));
   }
 
   /**
@@ -282,43 +337,56 @@ export class TaskDao {
   }
 
   /**
-   * Maps a database row to a Task object.
+   * Maps a database row to a Task instance.
+   * This creates a proper domain object with all methods.
+   * 
+   * The Task class constructor expects parameters in this order:
+   * constructor(
+   *   taskID, userID, title, taskType, priorityLevel, status,
+   *   completionPercentage, isRecurring, externalSyncStatus,
+   *   isDeleted, createdAt, updatedAt,
+   *   description?, dueDate?, dueTime?, startDate?, startTime?,
+   *   endDate?, endTime?, locationName?, locationAddress?,
+   *   latitude?, longitude?, estimatedDurationMinutes?,
+   *   actualDurationMinutes?, timeSpentMinutes?, recurrenceRule?,
+   *   parentTaskID?, externalID?, externalSource?, tags?, notes?, categoryID?
+   * )
    */
   private mapRowToTask(row: any): Task {
-    return {
-      taskID: row.id,
-      userID: row.user_id,
-      title: row.title,
-      description: row.description || null,
-      taskType: row.task_type,
-      priorityLevel: row.priority_level,
-      status: row.status,
-      completionPercentage: row.completion_percentage,
-      dueDate: row.due_date || null,
-      dueTime: row.due_time || null,
-      startDate: row.start_date || null,
-      startTime: row.start_time || null,
-      endDate: row.end_date || null,
-      endTime: row.end_time || null,
-      locationName: row.location_name || null,
-      locationAddress: row.location_address || null,
-      latitude: row.latitude || null,
-      longitude: row.longitude || null,
-      estimatedDurationMinutes: row.estimated_duration_minutes || null,
-      actualDurationMinutes: row.actual_duration_minutes || null,
-      timeSpentMinutes: row.time_spent_minutes || 0,
-      isRecurring: row.is_recurring === 1,
-      recurrenceRule: row.recurrence_rule || null,
-      parentTaskID: row.parent_task_id || null,
-      externalID: row.external_id || null,
-      externalSource: row.external_source || null,
-      externalSyncStatus: row.external_sync_status,
-      tags: row.tags || null,
-      notes: row.notes || null,
-      categoryID: row.category_id || null,
-      isDeleted: row.is_deleted === 1,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at,
-    };
+    return new Task(
+      row.id,                                   // taskID
+      row.user_id,                              // userID
+      row.title,                                // title
+      row.task_type || 'general',               // taskType
+      row.priority_level || 'medium',           // priorityLevel
+      row.status || 'pending',                  // status
+      row.completion_percentage || 0,           // completionPercentage
+      row.is_recurring === 1,                   // isRecurring
+      row.external_sync_status || 'not_synced', // externalSyncStatus
+      row.is_deleted === 1,                     // isDeleted
+      row.created_at,                           // createdAt
+      row.updated_at,                           // updatedAt
+      row.description || null,                  // description (optional)
+      row.due_date || null,                     // dueDate (optional)
+      row.due_time || null,                     // dueTime (optional)
+      row.start_date || null,                   // startDate (optional)
+      row.start_time || null,                   // startTime (optional)
+      row.end_date || null,                     // endDate (optional)
+      row.end_time || null,                     // endTime (optional)
+      row.location_name || null,                // locationName (optional)
+      row.location_address || null,             // locationAddress (optional)
+      row.latitude || null,                     // latitude (optional)
+      row.longitude || null,                    // longitude (optional)
+      row.estimated_duration_minutes || null,   // estimatedDurationMinutes (optional)
+      row.actual_duration_minutes || null,      // actualDurationMinutes (optional)
+      row.time_spent_minutes || 0,              // timeSpentMinutes (optional)
+      row.recurrence_rule || null,              // recurrenceRule (optional)
+      row.parent_task_id || null,               // parentTaskID (optional)
+      row.external_id || null,                  // externalID (optional)
+      row.external_source || null,              // externalSource (optional)
+      row.tags || null,                         // tags (optional)
+      row.notes || null,                        // notes (optional)
+      row.category_id || null                   // categoryID (optional)
+    );
   }
 }

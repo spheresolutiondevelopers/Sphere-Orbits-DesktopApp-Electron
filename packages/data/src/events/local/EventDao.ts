@@ -1,13 +1,10 @@
-import { randomUUID } from 'crypto';
+import { randomUUID } from 'node:crypto';
 import { DatabaseClient } from '../../database/DatabaseClient';
 import { Event, EventFilters, PaginationOptions, PaginatedResult } from '@sphere/domain';
 
 export class EventDao {
   constructor(private readonly db: DatabaseClient) {}
 
-  /**
-   * Gets events with filters and pagination.
-   */
   getEvents(
     userID: string,
     filters?: EventFilters,
@@ -52,7 +49,6 @@ export class EventDao {
 
       sql += ' ORDER BY start_datetime ASC, created_at DESC';
 
-      // Count total
       const countSql = sql.replace(
         /SELECT[\s\S]*?FROM/,
         'SELECT COUNT(*) as total FROM'
@@ -61,7 +57,6 @@ export class EventDao {
       const totalRow = countStmt.get(...params) as { total: number };
       const total = totalRow?.total || 0;
 
-      // Apply pagination
       if (pagination?.limit !== undefined) {
         sql += ' LIMIT ?';
         params.push(pagination.limit);
@@ -73,14 +68,11 @@ export class EventDao {
 
       const stmt = db.prepare(sql);
       const rows = stmt.all(...params) as any[];
-      const events = rows.map(this.mapRowToEvent);
+      const events = rows.map((row) => this.mapRowToEvent(row));
       return { items: events, total };
     });
   }
 
-  /**
-   * Gets a single event by ID.
-   */
   getEventById(eventID: string, userID: string): Event | null {
     const db = this.db.getDB();
     const stmt = db.prepare(`
@@ -96,9 +88,6 @@ export class EventDao {
     return this.mapRowToEvent(row);
   }
 
-  /**
-   * Creates a new event.
-   */
   createEvent(
     event: Omit<Event, 'eventID' | 'createdAt' | 'updatedAt'>
   ): Event {
@@ -131,12 +120,25 @@ export class EventDao {
       now
     );
 
-    return { ...event, eventID: id, createdAt: now, updatedAt: now, isDeleted: false };
+    return this.mapRowToEvent({
+      id,
+      user_id: event.userID,
+      category_id: event.categoryID || null,
+      task_id: event.taskID || null,
+      name: event.name,
+      format: event.format || null,
+      planning_notes: event.planningNotes || null,
+      start_datetime: event.startDateTime || null,
+      end_datetime: event.endDateTime || null,
+      status: event.status || 'planned',
+      is_recurring: event.isRecurring ? 1 : 0,
+      recurrence_pattern: event.recurrencePattern || null,
+      is_deleted: 0,
+      created_at: now,
+      updated_at: now,
+    });
   }
 
-  /**
-   * Updates an existing event.
-   */
   updateEvent(eventID: string, updates: Partial<Event>): Event | null {
     const db = this.db.getDB();
     const now = new Date().toISOString();
@@ -179,7 +181,6 @@ export class EventDao {
       return null;
     }
 
-    // Fetch the updated event
     const getStmt = db.prepare(`
       SELECT
         id, user_id, category_id, task_id, name, format,
@@ -192,9 +193,6 @@ export class EventDao {
     return this.mapRowToEvent(row);
   }
 
-  /**
-   * Soft-deletes an event.
-   */
   softDelete(eventID: string, userID: string): void {
     const db = this.db.getDB();
     const stmt = db.prepare(`
@@ -203,9 +201,6 @@ export class EventDao {
     stmt.run(new Date().toISOString(), eventID, userID);
   }
 
-  /**
-   * Gets events that need to be synced.
-   */
   getEventsForSync(userID: string): Event[] {
     const db = this.db.getDB();
     const stmt = db.prepare(`
@@ -217,12 +212,9 @@ export class EventDao {
       WHERE user_id = ? AND is_deleted = 0 AND external_sync_status != 'synced'
     `);
     const rows = stmt.all(userID) as any[];
-    return rows.map(this.mapRowToEvent);
+    return rows.map((row) => this.mapRowToEvent(row));
   }
 
-  /**
-   * Marks an event as synced.
-   */
   markSynced(eventID: string): void {
     const db = this.db.getDB();
     const stmt = db.prepare(`
@@ -232,25 +224,32 @@ export class EventDao {
   }
 
   /**
-   * Maps a database row to an Event object.
+   * Maps a database row to an Event instance.
+   * This creates a proper domain object with all methods.
    */
   private mapRowToEvent(row: any): Event {
-    return {
-      eventID: row.id,
-      userID: row.user_id,
-      categoryID: row.category_id || null,
-      taskID: row.task_id || null,
-      name: row.name,
-      format: row.format || null,
-      planningNotes: row.planning_notes || null,
-      startDateTime: row.start_datetime || null,
-      endDateTime: row.end_datetime || null,
-      status: row.status,
-      isRecurring: row.is_recurring === 1,
-      recurrencePattern: row.recurrence_pattern || null,
-      isDeleted: row.is_deleted === 1,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at,
-    };
+    // Event constructor expects:
+    // constructor(
+    //   eventID, userID, name, status, isRecurring, isDeleted,
+    //   createdAt, updatedAt, categoryID?, taskID?, format?,
+    //   planningNotes?, startDateTime?, endDateTime?, recurrencePattern?
+    // )
+    return new Event(
+      row.id,                              // eventID
+      row.user_id,                         // userID
+      row.name,                            // name
+      row.status || 'planned',             // status
+      row.is_recurring === 1,              // isRecurring
+      row.is_deleted === 1,                // isDeleted
+      row.created_at,                      // createdAt
+      row.updated_at,                      // updatedAt
+      row.category_id || null,             // categoryID (optional)
+      row.task_id || null,                 // taskID (optional)
+      row.format || null,                  // format (optional)
+      row.planning_notes || null,          // planningNotes (optional)
+      row.start_datetime || null,          // startDateTime (optional)
+      row.end_datetime || null,            // endDateTime (optional)
+      row.recurrence_pattern || null       // recurrencePattern (optional)
+    );
   }
 }

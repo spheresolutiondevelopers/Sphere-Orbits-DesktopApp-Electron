@@ -2,28 +2,22 @@
   "name": "sphere-orbits-desktop",
   "version": "1.0.0",
   "private": true,
-  "packageManager": "pnpm@11.9.0",
-  "description": "Sphere Schedule – Cross-platform desktop app (Electron)",
-  "main": "packages/main/dist/index.js",
-  "scripts": {
-    "dev": "turbo run dev",
-    "build": "turbo run build",
-    "test": "turbo run test",
-    "lint": "turbo run lint",
-    "clean": "turbo run clean && rm -rf node_modules",
-    "start": "electron packages/main/dist/index.js"
-  },
+  "packageManager": "pnpm@8.15.0",
   "workspaces": [
     "packages/*"
   ],
-  "devDependencies": {
-    "eslint": "^10.6.0",
-    "prettier": "^3.2.5",
-    "turbo": "^2.10.0",
-    "typescript": "^6.0.3"
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "start": "electron packages/main/dist/index.js",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "lint": "turbo run lint"
   },
-  "engines": {
-    "node": ">=18.0.0",
-    "pnpm": ">=8.0.0"
+  "devDependencies": {
+    "electron": "^42.5.2",
+    "eslint": "^9.0.0",
+    "prettier": "^3.5.0",
+    "turbo": "^2.5.0",
+    "typescript": "^6.0.3"
   }
 }

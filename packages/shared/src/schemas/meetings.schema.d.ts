@@ -1,0 +1,52 @@
+import { z } from 'zod';
+export declare const MeetingSchema: z.ZodObject<{
+    meetingID: z.ZodString;
+    taskID: z.ZodString;
+    organizerUserID: z.ZodString;
+    title: z.ZodString;
+    description: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+    startDateTime: z.ZodString;
+    endDateTime: z.ZodString;
+    meetingLink: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+    meetingPlatform: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+    isRecurring: z.ZodDefault<z.ZodBoolean>;
+    recurrencePattern: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+    status: z.ZodDefault<z.ZodEnum<["scheduled", "live", "ended", "cancelled"]>>;
+    isDeleted: z.ZodDefault<z.ZodBoolean>;
+    createdAt: z.ZodString;
+    updatedAt: z.ZodString;
+}, "strip", z.ZodTypeAny, {
+    isDeleted: boolean;
+    createdAt: string;
+    updatedAt: string;
+    status: "cancelled" | "scheduled" | "live" | "ended";
+    taskID: string;
+    title: string;
+    isRecurring: boolean;
+    startDateTime: string;
+    endDateTime: string;
+    meetingID: string;
+    organizerUserID: string;
+    description?: string | null | undefined;
+    meetingLink?: string | null | undefined;
+    meetingPlatform?: string | null | undefined;
+    recurrencePattern?: string | null | undefined;
+}, {
+    createdAt: string;
+    updatedAt: string;
+    taskID: string;
+    title: string;
+    startDateTime: string;
+    endDateTime: string;
+    meetingID: string;
+    organizerUserID: string;
+    isDeleted?: boolean | undefined;
+    status?: "cancelled" | "scheduled" | "live" | "ended" | undefined;
+    description?: string | null | undefined;
+    isRecurring?: boolean | undefined;
+    meetingLink?: string | null | undefined;
+    meetingPlatform?: string | null | undefined;
+    recurrencePattern?: string | null | undefined;
+}>;
+export type Meeting = z.infer<typeof MeetingSchema>;
+//# sourceMappingURL=meetings.schema.d.ts.map

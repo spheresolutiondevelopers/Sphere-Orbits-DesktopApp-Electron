@@ -4,7 +4,8 @@ export class ZoomApi {
   private client: AxiosInstance;
   private accessToken: string | null = null;
 
-  constructor(apiBaseURL: string) {
+  // The _apiBaseURL parameter is intentionally unused but kept for interface consistency
+  constructor(_apiBaseURL: string) {
     this.client = axios.create({
       baseURL: 'https://api.zoom.us/v2',
       timeout: 15000,
@@ -52,11 +53,12 @@ export class ZoomApi {
 
   /**
    * Generates a join link for an existing Zoom meeting.
+   * The unused parameters are kept for interface consistency.
    */
   async generateJoinLink(
     meetingLink: string,
-    _participantEmail: string,
-    _participantName: string
+    _participantEmail: string, // Intentionally unused
+    _participantName: string   // Intentionally unused
   ): Promise<string> {
     // For Zoom, the join link is already provided in the meeting object.
     // If we need to generate a personalized link, we could add query params.

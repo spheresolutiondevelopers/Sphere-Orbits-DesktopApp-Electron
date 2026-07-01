@@ -1,18 +1,27 @@
+import { randomUUID } from 'node:crypto';
 import { ok, err, type Result, MeetingSchema } from '@sphere/shared';
 import { Meeting, IMeetingRepository, MeetingFilters, PaginationOptions, PaginatedResult } from '@sphere/domain';
 import { DatabaseClient } from '../database/DatabaseClient';
 import { ZoomApi } from './remote/ZoomApi';
-import { randomUUID } from 'crypto';
 
 export class MeetingRepository implements IMeetingRepository {
   private zoomApi: ZoomApi;
+  private db: DatabaseClient;
 
   constructor(db: DatabaseClient, apiBaseURL: string) {
+    this.db = db;
     this.zoomApi = new ZoomApi(apiBaseURL);
   }
 
   setAuthToken(token: string): void {
     this.zoomApi.setAuthToken(token);
+  }
+
+  /**
+   * Helper to get the database client.
+   */
+  private getDB(): DatabaseClient {
+    return this.db;
   }
 
   async getMeetings(
@@ -21,9 +30,7 @@ export class MeetingRepository implements IMeetingRepository {
     pagination?: PaginationOptions
   ): Promise<Result<PaginatedResult<Meeting>, Error>> {
     try {
-      // Meetings are stored as tasks with taskType = 'meeting'
-      // We query the tasks table directly via a SQL query
-      const db = this.getDB();
+      const db = this.getDB().getDB();
       let sql = `
         SELECT
           m.id, m.task_id, m.organizer_user_id, m.title, m.description,
@@ -77,7 +84,7 @@ export class MeetingRepository implements IMeetingRepository {
 
       const stmt = db.prepare(sql);
       const rows = stmt.all(...params) as any[];
-      const meetings = rows.map(this.mapRowToMeeting);
+      const meetings = rows.map((row) => this.mapRowToMeeting(row));
 
       return ok({ items: meetings, total });
     } catch (error: any) {
@@ -87,7 +94,7 @@ export class MeetingRepository implements IMeetingRepository {
 
   async getMeetingById(meetingID: string, userID: string): Promise<Result<Meeting, Error>> {
     try {
-      const db = this.getDB();
+      const db = this.getDB().getDB();
       const stmt = db.prepare(`
         SELECT
           m.id, m.task_id, m.organizer_user_id, m.title, m.description,
@@ -113,7 +120,6 @@ export class MeetingRepository implements IMeetingRepository {
     meeting: Omit<Meeting, 'meetingID' | 'createdAt' | 'updatedAt'>
   ): Promise<Result<Meeting, Error>> {
     try {
-      // Validate with Zod
       const validation = MeetingSchema.omit({
         meetingID: true,
         createdAt: true,
@@ -125,11 +131,10 @@ export class MeetingRepository implements IMeetingRepository {
         return err(new Error(validation.error.message));
       }
 
-      const db = this.getDB();
+      const db = this.getDB().getDB();
       const id = randomUUID();
       const now = new Date().toISOString();
 
-      // First, ensure the task exists and is a meeting type
       const taskStmt = db.prepare(`
         SELECT id FROM tasks WHERE id = ? AND task_type = 'meeting' AND is_deleted = 0
       `);
@@ -164,7 +169,6 @@ export class MeetingRepository implements IMeetingRepository {
         now
       );
 
-      // Return the created meeting
       return this.getMeetingById(id, meeting.organizerUserID);
     } catch (error: any) {
       return err(error);
@@ -173,13 +177,12 @@ export class MeetingRepository implements IMeetingRepository {
 
   async updateMeeting(meetingID: string, updates: Partial<Meeting>): Promise<Result<Meeting, Error>> {
     try {
-      // Validate partial updates
       const validation = MeetingSchema.partial().safeParse(updates);
       if (!validation.success) {
         return err(new Error(validation.error.message));
       }
 
-      const db = this.getDB();
+      const db = this.getDB().getDB();
       const now = new Date().toISOString();
       const fields: string[] = [];
       const params: any[] = [];
@@ -192,7 +195,6 @@ export class MeetingRepository implements IMeetingRepository {
 
       for (const key of allowedFields) {
         if (key in updates && updates[key as keyof Meeting] !== undefined) {
-          // Convert camelCase to snake_case
           const snakeKey = key.replace(/[A-Z]/g, (c) => '_' + c.toLowerCase());
           fields.push(`${snakeKey} = ?`);
           const value = updates[key as keyof Meeting];
@@ -222,7 +224,6 @@ export class MeetingRepository implements IMeetingRepository {
         return err(new Error('Meeting not found'));
       }
 
-      // Fetch the updated meeting
       const getStmt = db.prepare(`
         SELECT
           id, task_id, organizer_user_id, title, description,
@@ -236,8 +237,7 @@ export class MeetingRepository implements IMeetingRepository {
         return err(new Error('Meeting not found'));
       }
 
-      const updatedMeeting = this.mapRowToMeeting(row);
-      return ok(updatedMeeting);
+      return ok(this.mapRowToMeeting(row));
     } catch (error: any) {
       return err(error);
     }
@@ -245,8 +245,7 @@ export class MeetingRepository implements IMeetingRepository {
 
   async deleteMeeting(meetingID: string, userID: string): Promise<Result<void, Error>> {
     try {
-      const db = this.getDB();
-      // First, verify the meeting belongs to the user via the task
+      const db = this.getDB().getDB();
       const verifyStmt = db.prepare(`
         SELECT m.id
         FROM meetings m
@@ -275,7 +274,6 @@ export class MeetingRepository implements IMeetingRepository {
     participantName: string
   ): Promise<Result<{ meetingLink: string }, Error>> {
     try {
-      // First, get the meeting to know its platform and link
       const meetingResult = await this.getMeetingById(meetingID, userID);
       if (meetingResult.isFailure()) {
         return err(meetingResult.error);
@@ -283,9 +281,7 @@ export class MeetingRepository implements IMeetingRepository {
 
       const meeting = meetingResult.value;
 
-      // If it's a Zoom meeting, generate a join link
       if (meeting.meetingPlatform === 'Zoom' && meeting.meetingLink) {
-        // For Zoom, we can generate a join link using the Zoom API
         const joinLink = await this.zoomApi.generateJoinLink(
           meeting.meetingLink,
           participantEmail,
@@ -294,7 +290,6 @@ export class MeetingRepository implements IMeetingRepository {
         return ok({ meetingLink: joinLink });
       }
 
-      // If it's a Google Meet or Teams, just return the existing link
       if (meeting.meetingLink) {
         return ok({ meetingLink: meeting.meetingLink });
       }
@@ -307,7 +302,7 @@ export class MeetingRepository implements IMeetingRepository {
 
   async getMeetingsForSync(userID: string): Promise<Result<Meeting[], Error>> {
     try {
-      const db = this.getDB();
+      const db = this.getDB().getDB();
       const stmt = db.prepare(`
         SELECT
           m.id, m.task_id, m.organizer_user_id, m.title, m.description,
@@ -321,7 +316,8 @@ export class MeetingRepository implements IMeetingRepository {
           AND m.external_sync_status != 'synced'
       `);
       const rows = stmt.all(userID) as any[];
-      const meetings = rows.map(this.mapRowToMeeting);
+      // Use arrow function to properly bind 'this'
+      const meetings = rows.map((row) => this.mapRowToMeeting(row));
       return ok(meetings);
     } catch (error: any) {
       return err(error);
@@ -330,7 +326,7 @@ export class MeetingRepository implements IMeetingRepository {
 
   async markMeetingSynced(meetingID: string): Promise<Result<void, Error>> {
     try {
-      const db = this.getDB();
+      const db = this.getDB().getDB();
       const stmt = db.prepare(`
         UPDATE meetings SET external_sync_status = 'synced', updated_at = ? WHERE id = ?
       `);
@@ -342,33 +338,26 @@ export class MeetingRepository implements IMeetingRepository {
   }
 
   /**
-   * Helper to get the database instance.
-   */
-  private getDB() {
-    // We need a database instance; we'll get it from the constructor.
-    throw new Error('getDB not implemented');
-  }
-
-  /**
-   * Maps a database row to a Meeting object.
+   * Maps a database row to a Meeting instance.
+   * This creates a proper domain object with all methods.
    */
   private mapRowToMeeting(row: any): Meeting {
-    return {
-      meetingID: row.id,
-      taskID: row.task_id,
-      organizerUserID: row.organizer_user_id,
-      title: row.title,
-      description: row.description || null,
-      startDateTime: row.start_datetime,
-      endDateTime: row.end_datetime,
-      meetingLink: row.meeting_link || null,
-      meetingPlatform: row.meeting_platform || null,
-      isRecurring: row.is_recurring === 1,
-      recurrencePattern: row.recurrence_pattern || null,
-      status: row.status,
-      isDeleted: row.is_deleted === 1,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at,
-    };
+    return new Meeting(
+      row.id,
+      row.task_id,
+      row.organizer_user_id,
+      row.title,
+      row.start_datetime,
+      row.end_datetime,
+      row.status || 'scheduled',
+      row.is_recurring === 1,
+      row.is_deleted === 1,
+      row.created_at,
+      row.updated_at,
+      row.description || null,
+      row.meeting_link || null,
+      row.meeting_platform || null,
+      row.recurrence_pattern || null
+    );
   }
 }

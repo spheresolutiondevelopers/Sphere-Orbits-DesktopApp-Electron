@@ -1,8 +1,5 @@
 import { BrowserWindow, BrowserWindowConstructorOptions, screen } from 'electron';
 import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export function createSettingsWindow(parentWindow: BrowserWindow | null): BrowserWindow {
   const { width, height } = screen.getPrimaryDisplay().workAreaSize;
@@ -16,9 +13,9 @@ export function createSettingsWindow(parentWindow: BrowserWindow | null): Browse
     modal: true,
     title: 'Settings – Sphere',
     backgroundColor: '#0F0E1C',
-    icon: path.join(__dirname, '../../public/icons/icon.png'),
+    icon: path.join(process.cwd(), 'public/icons/icon.png'),
     webPreferences: {
-      preload: path.join(__dirname, '../../preload/dist/index.js'),
+      preload: path.join(process.cwd(), 'packages/preload/dist/index.js'),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
@@ -28,14 +25,12 @@ export function createSettingsWindow(parentWindow: BrowserWindow | null): Browse
 
   const win = new BrowserWindow(options);
 
-  // Load the settings page (within the same renderer with a route)
-  // We'll use the same dev/prod loading logic as main window
   const isDev = process.env.NODE_ENV === 'development';
   if (isDev) {
     const devUrl = process.env.RENDERER_DEV_URL || 'http://localhost:5173/#/settings';
     win.loadURL(devUrl);
   } else {
-    const indexPath = path.join(__dirname, '../../renderer/dist/index.html');
+    const indexPath = path.join(process.cwd(), 'packages/renderer/dist/index.html');
     win.loadFile(indexPath, { hash: 'settings' });
   }
 

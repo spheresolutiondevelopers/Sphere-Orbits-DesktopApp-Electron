@@ -14,7 +14,6 @@ export class SettingsRepository implements ISettingsRepository {
     try {
       const settings = this.settingsStore.getSettings(userID);
       if (!settings) {
-        // Return default settings if not found
         return ok(this.getDefaultSettings());
       }
       return ok(settings);
@@ -25,7 +24,6 @@ export class SettingsRepository implements ISettingsRepository {
 
   async updateSettings(userID: string, updates: Partial<Settings>): Promise<Result<Settings, Error>> {
     try {
-      // Validate partial updates
       const validation = SettingsSchema.partial().safeParse(updates);
       if (!validation.success) {
         return err(new Error(validation.error.message));
@@ -36,7 +34,6 @@ export class SettingsRepository implements ISettingsRepository {
         return err(currentResult.error);
       }
 
-      // Merge current settings with updates
       const current = currentResult.value;
       const merged = {
         theme: updates.theme || current.theme,
@@ -55,7 +52,25 @@ export class SettingsRepository implements ISettingsRepository {
         preferences: updates.preferences ? { ...current.preferences, ...updates.preferences } : current.preferences,
       };
 
-      const saved = this.settingsStore.saveSettings(userID, merged);
+      // Create a Settings instance using the constructor
+      const settingsInstance = new Settings(
+        merged.theme,
+        merged.notificationsEnabled,
+        merged.pushNotifications,
+        merged.emailNotifications,
+        merged.googleCalendarSync,
+        merged.outlookCalendarSync,
+        merged.appleCalendarSync,
+        merged.language,
+        merged.timezone,
+        merged.defaultView,
+        merged.compactMode,
+        merged.reminderDefaultMinutes,
+        merged.shareUsageData,
+        merged.preferences
+      );
+
+      const saved = this.settingsStore.saveSettings(userID, settingsInstance);
       return ok(saved);
     } catch (error: any) {
       return err(error);
@@ -73,21 +88,21 @@ export class SettingsRepository implements ISettingsRepository {
   }
 
   private getDefaultSettings(): Settings {
-    return {
-      theme: 'system',
-      notificationsEnabled: true,
-      pushNotifications: true,
-      emailNotifications: true,
-      googleCalendarSync: false,
-      outlookCalendarSync: false,
-      appleCalendarSync: false,
-      language: 'en',
-      timezone: 'UTC',
-      defaultView: 'day',
-      compactMode: false,
-      reminderDefaultMinutes: 15,
-      shareUsageData: true,
-      preferences: {},
-    } as Settings;
+    return new Settings(
+      'system',                          // theme
+      true,                              // notificationsEnabled
+      true,                              // pushNotifications
+      true,                              // emailNotifications
+      false,                             // googleCalendarSync
+      false,                             // outlookCalendarSync
+      false,                             // appleCalendarSync
+      'en',                              // language
+      'UTC',                             // timezone
+      'day',                             // defaultView
+      false,                             // compactMode
+      15,                                // reminderDefaultMinutes
+      true,                              // shareUsageData
+      {}                                 // preferences
+    );
   }
 }

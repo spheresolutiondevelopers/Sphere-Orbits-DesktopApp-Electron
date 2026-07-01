@@ -1,0 +1,55 @@
+import { z } from 'zod';
+export declare const UserSchema: z.ZodObject<{
+    userID: z.ZodString;
+    email: z.ZodString;
+    username: z.ZodOptional<z.ZodString>;
+    password_hash: z.ZodOptional<z.ZodString>;
+    password_salt: z.ZodOptional<z.ZodString>;
+    displayName: z.ZodString;
+    firstName: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+    lastName: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+    phoneNumber: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+    avatarUrl: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+    dateOfBirth: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+    accountType: z.ZodDefault<z.ZodEnum<["free", "premium", "enterprise", "admin"]>>;
+    isActive: z.ZodDefault<z.ZodBoolean>;
+    isDeleted: z.ZodDefault<z.ZodBoolean>;
+    createdAt: z.ZodString;
+    updatedAt: z.ZodString;
+}, "strip", z.ZodTypeAny, {
+    userID: string;
+    email: string;
+    displayName: string;
+    accountType: "free" | "premium" | "enterprise" | "admin";
+    isActive: boolean;
+    isDeleted: boolean;
+    createdAt: string;
+    updatedAt: string;
+    username?: string | undefined;
+    password_hash?: string | undefined;
+    password_salt?: string | undefined;
+    firstName?: string | null | undefined;
+    lastName?: string | null | undefined;
+    phoneNumber?: string | null | undefined;
+    avatarUrl?: string | null | undefined;
+    dateOfBirth?: string | null | undefined;
+}, {
+    userID: string;
+    email: string;
+    displayName: string;
+    createdAt: string;
+    updatedAt: string;
+    username?: string | undefined;
+    password_hash?: string | undefined;
+    password_salt?: string | undefined;
+    firstName?: string | null | undefined;
+    lastName?: string | null | undefined;
+    phoneNumber?: string | null | undefined;
+    avatarUrl?: string | null | undefined;
+    dateOfBirth?: string | null | undefined;
+    accountType?: "free" | "premium" | "enterprise" | "admin" | undefined;
+    isActive?: boolean | undefined;
+    isDeleted?: boolean | undefined;
+}>;
+export type User = z.infer<typeof UserSchema>;
+//# sourceMappingURL=auth.schema.d.ts.map

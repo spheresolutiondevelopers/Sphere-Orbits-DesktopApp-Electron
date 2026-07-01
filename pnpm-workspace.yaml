@@ -5,3 +5,4 @@ allowBuilds:
   electron: true
   esbuild: true
   keytar: true
+  lzma-native: true

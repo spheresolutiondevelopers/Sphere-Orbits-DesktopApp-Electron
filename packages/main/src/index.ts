@@ -3,7 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { DatabaseClient } from '@sphere/data';
 import { AuthRepository, TaskRepository, AppointmentRepository, EventRepository, MeetingRepository, NotesRepository, CalendarRepository, ChatRepository, AnalyticsRepository, SettingsRepository } from '@sphere/data';
-import { TokenStore } from '@sphere/data/src/auth/TokenStore';
+import { TokenStore } from '@sphere/data';
 import { OAuthClient } from '@sphere/data/src/auth/OAuthClient';
 import { registerIpcHandlers } from './ipc';
 import { createMainWindow, createSettingsWindow } from './windows';

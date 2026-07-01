@@ -1,6 +1,6 @@
-import { randomUUID } from 'crypto';
+import { randomUUID } from 'node:crypto';
 import { DatabaseClient } from '../../database/DatabaseClient';
-import { Appointment, AppointmentFilters, PaginationOptions, PaginatedResult } from '@sphere/domain';
+import { Appointment } from '@sphere/domain'; // Import the class, not just the type
 
 export class AppointmentDao {
   constructor(private readonly db: DatabaseClient) {}
@@ -10,9 +10,9 @@ export class AppointmentDao {
    */
   getAppointments(
     userID: string,
-    filters?: AppointmentFilters,
-    pagination?: PaginationOptions
-  ): PaginatedResult<Appointment> {
+    filters?: any,
+    pagination?: { limit: number; offset: number }
+  ): { items: Appointment[]; total: number } {
     return this.db.transaction((db) => {
       let sql = `
         SELECT
@@ -76,7 +76,8 @@ export class AppointmentDao {
 
       const stmt = db.prepare(sql);
       const rows = stmt.all(...params) as any[];
-      const appointments = rows.map(this.mapRowToAppointment);
+      // Map rows to Appointment instances using the class constructor
+      const appointments = rows.map((row) => this.mapRowToAppointment(row));
       return { items: appointments, total };
     });
   }
@@ -150,7 +151,32 @@ export class AppointmentDao {
       now
     );
 
-    return { ...appointment, appointmentID: id, createdAt: now, updatedAt: now, isDeleted: false };
+    // Return a proper Appointment instance
+    return this.mapRowToAppointment({
+      id,
+      user_id: appointment.userID,
+      title: appointment.title,
+      description: appointment.description || null,
+      appointment_type: appointment.appointmentType || 'general',
+      start_datetime: appointment.startDateTime,
+      end_datetime: appointment.endDateTime,
+      all_day_event: appointment.allDayEvent ? 1 : 0,
+      location: appointment.location || null,
+      is_virtual: appointment.isVirtual ? 1 : 0,
+      meeting_link: appointment.meetingLink || null,
+      meeting_platform: appointment.meetingPlatform || null,
+      status: appointment.status || 'scheduled',
+      reminder_minutes_before: appointment.reminderMinutesBefore || 15,
+      is_recurring: appointment.isRecurring ? 1 : 0,
+      recurrence_pattern: appointment.recurrencePattern || null,
+      calendar_color: appointment.calendarColor || '#2196F3',
+      external_event_id: appointment.externalEventID || null,
+      external_sync_status: appointment.externalSyncStatus || 'not_synced',
+      notes: appointment.notes || null,
+      is_deleted: 0,
+      created_at: now,
+      updated_at: now,
+    });
   }
 
   /**
@@ -201,19 +227,7 @@ export class AppointmentDao {
     }
 
     // Fetch the updated appointment
-    const getStmt = db.prepare(`
-      SELECT
-        id, user_id, title, description, appointment_type,
-        start_datetime, end_datetime, all_day_event, location,
-        is_virtual, meeting_link, meeting_platform, status,
-        reminder_minutes_before, is_recurring, recurrence_pattern,
-        calendar_color, external_event_id, external_sync_status, notes,
-        is_deleted, created_at, updated_at
-      FROM appointments WHERE id = ?
-    `);
-    const row = getStmt.get(appointmentID) as any;
-    if (!row) return null;
-    return this.mapRowToAppointment(row);
+    return this.getAppointmentById(appointmentID, updates.userID || '');
   }
 
   /**
@@ -258,7 +272,7 @@ export class AppointmentDao {
     `;
     const params: any[] = [
       userID,
-      endDateTime, startDateTime, // overlapping interval
+      endDateTime, startDateTime,
       endDateTime, startDateTime,
       startDateTime, endDateTime,
       startDateTime, endDateTime,
@@ -271,7 +285,7 @@ export class AppointmentDao {
 
     const stmt = db.prepare(sql);
     const rows = stmt.all(...params) as any[];
-    return rows.map(this.mapRowToAppointment);
+    return rows.map((row) => this.mapRowToAppointment(row));
   }
 
   /**
@@ -291,7 +305,7 @@ export class AppointmentDao {
       WHERE user_id = ? AND external_sync_status != 'synced' AND is_deleted = 0
     `);
     const rows = stmt.all(userID) as any[];
-    return rows.map(this.mapRowToAppointment);
+    return rows.map((row) => this.mapRowToAppointment(row));
   }
 
   /**
@@ -306,33 +320,36 @@ export class AppointmentDao {
   }
 
   /**
-   * Maps a database row to an Appointment object.
+   * Maps a database row to an Appointment instance.
+   * This creates a proper domain object with all methods.
    */
   private mapRowToAppointment(row: any): Appointment {
-    return {
-      appointmentID: row.id,
-      userID: row.user_id,
-      title: row.title,
-      description: row.description || null,
-      appointmentType: row.appointment_type,
-      startDateTime: row.start_datetime,
-      endDateTime: row.end_datetime,
-      allDayEvent: row.all_day_event === 1,
-      location: row.location || null,
-      isVirtual: row.is_virtual === 1,
-      meetingLink: row.meeting_link || null,
-      meetingPlatform: row.meeting_platform || null,
-      status: row.status,
-      reminderMinutesBefore: row.reminder_minutes_before,
-      isRecurring: row.is_recurring === 1,
-      recurrencePattern: row.recurrence_pattern || null,
-      calendarColor: row.calendar_color || '#2196F3',
-      externalEventID: row.external_event_id || null,
-      externalSyncStatus: row.external_sync_status || 'not_synced',
-      notes: row.notes || null,
-      isDeleted: row.is_deleted === 1,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at,
-    };
+    // Use the Appointment class constructor to create a proper instance
+    // Since Appointment is a class, we need to pass all required parameters
+    return new Appointment(
+      row.id,                                      // appointmentID
+      row.user_id,                                 // userID
+      row.title,                                   // title
+      row.appointment_type || 'general',           // appointmentType
+      row.start_datetime,                          // startDateTime
+      row.end_datetime,                            // endDateTime
+      row.all_day_event === 1,                     // allDayEvent
+      row.is_virtual === 1,                        // isVirtual
+      row.status || 'scheduled',                   // status
+      row.reminder_minutes_before || 15,           // reminderMinutesBefore
+      row.is_recurring === 1,                      // isRecurring
+      row.external_sync_status || 'not_synced',    // externalSyncStatus
+      row.is_deleted === 1,                        // isDeleted
+      row.created_at,                              // createdAt
+      row.updated_at,                              // updatedAt
+      row.description || null,                     // description
+      row.location || null,                        // location
+      row.meeting_link || null,                    // meetingLink
+      row.meeting_platform || null,                // meetingPlatform
+      row.recurrence_pattern || null,              // recurrencePattern
+      row.calendar_color || '#2196F3',             // calendarColor
+      row.external_event_id || null,               // externalEventID
+      row.notes || null                            // notes
+    );
   }
 }

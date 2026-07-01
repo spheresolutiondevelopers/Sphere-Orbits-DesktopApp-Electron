@@ -1,0 +1,242 @@
+import { z } from 'zod';
+export declare const SyncCalendarRequestSchema: z.ZodObject<{
+    source: z.ZodEnum<["google", "outlook", "apple"]>;
+    startDate: z.ZodString;
+    endDate: z.ZodString;
+}, "strip", z.ZodTypeAny, {
+    startDate: string;
+    endDate: string;
+    source: "google" | "outlook" | "apple";
+}, {
+    startDate: string;
+    endDate: string;
+    source: "google" | "outlook" | "apple";
+}>;
+export declare const SyncCalendarResponseSchema: z.ZodObject<{
+    events: z.ZodArray<z.ZodObject<{
+        id: z.ZodString;
+        source: z.ZodEnum<["google", "outlook", "apple"]>;
+        externalID: z.ZodString;
+        title: z.ZodString;
+        description: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+        startDateTime: z.ZodString;
+        endDateTime: z.ZodString;
+        allDayEvent: z.ZodDefault<z.ZodBoolean>;
+        location: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+        meetingLink: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+        color: z.ZodOptional<z.ZodString>;
+        organizer: z.ZodOptional<z.ZodString>;
+        attendees: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
+        status: z.ZodDefault<z.ZodEnum<["confirmed", "tentative", "cancelled"]>>;
+        recurrenceRule: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+        isRecurring: z.ZodDefault<z.ZodBoolean>;
+        createdAt: z.ZodString;
+        updatedAt: z.ZodString;
+    }, "strip", z.ZodTypeAny, {
+        createdAt: string;
+        updatedAt: string;
+        status: "cancelled" | "confirmed" | "tentative";
+        title: string;
+        isRecurring: boolean;
+        externalID: string;
+        startDateTime: string;
+        endDateTime: string;
+        allDayEvent: boolean;
+        id: string;
+        source: "google" | "outlook" | "apple";
+        description?: string | null | undefined;
+        recurrenceRule?: string | null | undefined;
+        location?: string | null | undefined;
+        meetingLink?: string | null | undefined;
+        color?: string | undefined;
+        organizer?: string | undefined;
+        attendees?: string[] | undefined;
+    }, {
+        createdAt: string;
+        updatedAt: string;
+        title: string;
+        externalID: string;
+        startDateTime: string;
+        endDateTime: string;
+        id: string;
+        source: "google" | "outlook" | "apple";
+        status?: "cancelled" | "confirmed" | "tentative" | undefined;
+        description?: string | null | undefined;
+        isRecurring?: boolean | undefined;
+        recurrenceRule?: string | null | undefined;
+        allDayEvent?: boolean | undefined;
+        location?: string | null | undefined;
+        meetingLink?: string | null | undefined;
+        color?: string | undefined;
+        organizer?: string | undefined;
+        attendees?: string[] | undefined;
+    }>, "many">;
+    syncedCount: z.ZodNumber;
+    errors: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
+}, "strip", z.ZodTypeAny, {
+    events: {
+        createdAt: string;
+        updatedAt: string;
+        status: "cancelled" | "confirmed" | "tentative";
+        title: string;
+        isRecurring: boolean;
+        externalID: string;
+        startDateTime: string;
+        endDateTime: string;
+        allDayEvent: boolean;
+        id: string;
+        source: "google" | "outlook" | "apple";
+        description?: string | null | undefined;
+        recurrenceRule?: string | null | undefined;
+        location?: string | null | undefined;
+        meetingLink?: string | null | undefined;
+        color?: string | undefined;
+        organizer?: string | undefined;
+        attendees?: string[] | undefined;
+    }[];
+    syncedCount: number;
+    errors?: string[] | undefined;
+}, {
+    events: {
+        createdAt: string;
+        updatedAt: string;
+        title: string;
+        externalID: string;
+        startDateTime: string;
+        endDateTime: string;
+        id: string;
+        source: "google" | "outlook" | "apple";
+        status?: "cancelled" | "confirmed" | "tentative" | undefined;
+        description?: string | null | undefined;
+        isRecurring?: boolean | undefined;
+        recurrenceRule?: string | null | undefined;
+        allDayEvent?: boolean | undefined;
+        location?: string | null | undefined;
+        meetingLink?: string | null | undefined;
+        color?: string | undefined;
+        organizer?: string | undefined;
+        attendees?: string[] | undefined;
+    }[];
+    syncedCount: number;
+    errors?: string[] | undefined;
+}>;
+export declare const GetCalendarEventsRequestSchema: z.ZodObject<{
+    startDate: z.ZodString;
+    endDate: z.ZodString;
+    source: z.ZodDefault<z.ZodEnum<["google", "outlook", "apple", "all"]>>;
+}, "strip", z.ZodTypeAny, {
+    startDate: string;
+    endDate: string;
+    source: "google" | "outlook" | "apple" | "all";
+}, {
+    startDate: string;
+    endDate: string;
+    source?: "google" | "outlook" | "apple" | "all" | undefined;
+}>;
+export declare const GetCalendarEventsResponseSchema: z.ZodObject<{
+    events: z.ZodArray<z.ZodObject<{
+        id: z.ZodString;
+        source: z.ZodEnum<["google", "outlook", "apple"]>;
+        externalID: z.ZodString;
+        title: z.ZodString;
+        description: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+        startDateTime: z.ZodString;
+        endDateTime: z.ZodString;
+        allDayEvent: z.ZodDefault<z.ZodBoolean>;
+        location: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+        meetingLink: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+        color: z.ZodOptional<z.ZodString>;
+        organizer: z.ZodOptional<z.ZodString>;
+        attendees: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
+        status: z.ZodDefault<z.ZodEnum<["confirmed", "tentative", "cancelled"]>>;
+        recurrenceRule: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+        isRecurring: z.ZodDefault<z.ZodBoolean>;
+        createdAt: z.ZodString;
+        updatedAt: z.ZodString;
+    }, "strip", z.ZodTypeAny, {
+        createdAt: string;
+        updatedAt: string;
+        status: "cancelled" | "confirmed" | "tentative";
+        title: string;
+        isRecurring: boolean;
+        externalID: string;
+        startDateTime: string;
+        endDateTime: string;
+        allDayEvent: boolean;
+        id: string;
+        source: "google" | "outlook" | "apple";
+        description?: string | null | undefined;
+        recurrenceRule?: string | null | undefined;
+        location?: string | null | undefined;
+        meetingLink?: string | null | undefined;
+        color?: string | undefined;
+        organizer?: string | undefined;
+        attendees?: string[] | undefined;
+    }, {
+        createdAt: string;
+        updatedAt: string;
+        title: string;
+        externalID: string;
+        startDateTime: string;
+        endDateTime: string;
+        id: string;
+        source: "google" | "outlook" | "apple";
+        status?: "cancelled" | "confirmed" | "tentative" | undefined;
+        description?: string | null | undefined;
+        isRecurring?: boolean | undefined;
+        recurrenceRule?: string | null | undefined;
+        allDayEvent?: boolean | undefined;
+        location?: string | null | undefined;
+        meetingLink?: string | null | undefined;
+        color?: string | undefined;
+        organizer?: string | undefined;
+        attendees?: string[] | undefined;
+    }>, "many">;
+}, "strip", z.ZodTypeAny, {
+    events: {
+        createdAt: string;
+        updatedAt: string;
+        status: "cancelled" | "confirmed" | "tentative";
+        title: string;
+        isRecurring: boolean;
+        externalID: string;
+        startDateTime: string;
+        endDateTime: string;
+        allDayEvent: boolean;
+        id: string;
+        source: "google" | "outlook" | "apple";
+        description?: string | null | undefined;
+        recurrenceRule?: string | null | undefined;
+        location?: string | null | undefined;
+        meetingLink?: string | null | undefined;
+        color?: string | undefined;
+        organizer?: string | undefined;
+        attendees?: string[] | undefined;
+    }[];
+}, {
+    events: {
+        createdAt: string;
+        updatedAt: string;
+        title: string;
+        externalID: string;
+        startDateTime: string;
+        endDateTime: string;
+        id: string;
+        source: "google" | "outlook" | "apple";
+        status?: "cancelled" | "confirmed" | "tentative" | undefined;
+        description?: string | null | undefined;
+        isRecurring?: boolean | undefined;
+        recurrenceRule?: string | null | undefined;
+        allDayEvent?: boolean | undefined;
+        location?: string | null | undefined;
+        meetingLink?: string | null | undefined;
+        color?: string | undefined;
+        organizer?: string | undefined;
+        attendees?: string[] | undefined;
+    }[];
+}>;
+export type SyncCalendarRequest = z.infer<typeof SyncCalendarRequestSchema>;
+export type SyncCalendarResponse = z.infer<typeof SyncCalendarResponseSchema>;
+export type GetCalendarEventsRequest = z.infer<typeof GetCalendarEventsRequestSchema>;
+export type GetCalendarEventsResponse = z.infer<typeof GetCalendarEventsResponseSchema>;
+//# sourceMappingURL=calendar.contract.d.ts.map

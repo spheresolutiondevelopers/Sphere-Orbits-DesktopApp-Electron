@@ -1,8 +1,10 @@
 import { ok, err, type Result } from '@sphere/shared';
+// Import CalendarEvent and ICalendarRepository from domain
 import { CalendarEvent, ICalendarRepository } from '@sphere/domain';
 import { DatabaseClient } from '../database/DatabaseClient';
 import { EventDao } from './local/EventDao';
 import { GoogleCalendarApi } from './remote/GoogleCalendarApi';
+
 
 export class CalendarRepository implements ICalendarRepository {
   private eventDao: EventDao;
@@ -44,7 +46,6 @@ export class CalendarRepository implements ICalendarRepository {
       const errors: string[] = [];
       let syncedCount = 0;
 
-      // Fetch remote events
       const eventsResult = await this.getEvents(source, startDate, endDate);
       if (eventsResult.isFailure()) {
         return err(eventsResult.error);
@@ -52,7 +53,6 @@ export class CalendarRepository implements ICalendarRepository {
 
       const remoteEvents = eventsResult.value;
 
-      // For each event, store locally
       for (const event of remoteEvents) {
         try {
           await this.eventDao.upsertEvent(userID, event);

@@ -1,25 +1,29 @@
-import { z } from 'zod';
-import { UserSchema } from '../../schemas';
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ValidateTokenResponseSchema = exports.ValidateTokenRequestSchema = exports.SignupRequestSchema = exports.LoginResponseSchema = exports.LoginRequestSchema = void 0;
+const zod_1 = require("zod");
+const schemas_1 = require("../../schemas");
 // Request / Response DTOs
-export const LoginRequestSchema = z.object({
-    email: z.string().email(),
-    password: z.string().min(8),
+exports.LoginRequestSchema = zod_1.z.object({
+    email: zod_1.z.string().email(),
+    password: zod_1.z.string().min(8),
 });
-export const LoginResponseSchema = z.object({
-    user: UserSchema,
-    token: z.string(),
-    refreshToken: z.string().optional(),
+exports.LoginResponseSchema = zod_1.z.object({
+    user: schemas_1.UserSchema,
+    token: zod_1.z.string(),
+    refreshToken: zod_1.z.string().optional(),
 });
-export const SignupRequestSchema = z.object({
-    email: z.string().email(),
-    password: z.string().min(8),
-    username: z.string().min(3).max(100),
-    displayName: z.string().min(1).max(100),
+exports.SignupRequestSchema = zod_1.z.object({
+    email: zod_1.z.string().email(),
+    password: zod_1.z.string().min(8),
+    username: zod_1.z.string().min(3).max(100),
+    displayName: zod_1.z.string().min(1).max(100),
 });
-export const ValidateTokenRequestSchema = z.object({
-    token: z.string(),
+exports.ValidateTokenRequestSchema = zod_1.z.object({
+    token: zod_1.z.string(),
 });
-export const ValidateTokenResponseSchema = z.object({
-    valid: z.boolean(),
-    user: UserSchema.optional(),
+exports.ValidateTokenResponseSchema = zod_1.z.object({
+    valid: zod_1.z.boolean(),
+    user: schemas_1.UserSchema.optional(),
 });
+//# sourceMappingURL=auth.contract.js.map

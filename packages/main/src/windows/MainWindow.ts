@@ -1,8 +1,5 @@
 import { BrowserWindow, BrowserWindowConstructorOptions, screen } from 'electron';
 import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export function createMainWindow(isDev: boolean): BrowserWindow {
   const { width, height } = screen.getPrimaryDisplay().workAreaSize;
@@ -14,14 +11,14 @@ export function createMainWindow(isDev: boolean): BrowserWindow {
     minHeight: 600,
     title: 'Sphere Schedule',
     backgroundColor: '#0F0E1C',
-    icon: path.join(__dirname, '../../public/icons/icon.png'),
+    icon: path.join(process.cwd(), 'public/icons/icon.png'),
     webPreferences: {
-      preload: path.join(__dirname, '../../preload/dist/index.js'),
+      preload: path.join(process.cwd(), 'packages/preload/dist/index.js'),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
     },
-    show: false, // Show only when ready
+    show: false,
     frame: true,
     titleBarStyle: 'hiddenInset',
     trafficLightPosition: { x: 16, y: 18 },
@@ -35,17 +32,13 @@ export function createMainWindow(isDev: boolean): BrowserWindow {
     win.loadURL(devUrl);
     win.webContents.openDevTools({ mode: 'detach' });
   } else {
-    const indexPath = path.join(__dirname, '../../renderer/dist/index.html');
+    const indexPath = path.join(process.cwd(), 'packages/renderer/dist/index.html');
     win.loadFile(indexPath);
   }
 
   win.on('ready-to-show', () => {
     win.show();
     win.focus();
-  });
-
-  win.on('closed', () => {
-    // Cleanup
   });
 
   return win;

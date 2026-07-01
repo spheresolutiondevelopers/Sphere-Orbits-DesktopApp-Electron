@@ -1,36 +1,40 @@
-import { z } from 'zod';
-import { NoteSchema } from '../../schemas';
-export const GetNotesRequestSchema = z.object({
-    filters: z.object({
-        entityType: z.enum(['task', 'event', 'appointment', 'meeting']).optional(),
-        entityID: z.string().uuid().optional(),
-        search: z.string().optional(),
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.NoteConflictResponseSchema = exports.DeleteNoteRequestSchema = exports.UpdateNoteRequestSchema = exports.CreateNoteRequestSchema = exports.GetNotesResponseSchema = exports.GetNotesRequestSchema = void 0;
+const zod_1 = require("zod");
+const schemas_1 = require("../../schemas");
+exports.GetNotesRequestSchema = zod_1.z.object({
+    filters: zod_1.z.object({
+        entityType: zod_1.z.enum(['task', 'event', 'appointment', 'meeting']).optional(),
+        entityID: zod_1.z.string().uuid().optional(),
+        search: zod_1.z.string().optional(),
     }).optional(),
-    pagination: z.object({
-        limit: z.number().int().min(1).max(100).default(20),
-        offset: z.number().int().min(0).default(0),
+    pagination: zod_1.z.object({
+        limit: zod_1.z.number().int().min(1).max(100).default(20),
+        offset: zod_1.z.number().int().min(0).default(0),
     }).optional(),
 });
-export const GetNotesResponseSchema = z.object({
-    notes: z.array(NoteSchema),
-    total: z.number().int(),
+exports.GetNotesResponseSchema = zod_1.z.object({
+    notes: zod_1.z.array(schemas_1.NoteSchema),
+    total: zod_1.z.number().int(),
 });
-export const CreateNoteRequestSchema = NoteSchema.omit({
+exports.CreateNoteRequestSchema = schemas_1.NoteSchema.omit({
     noteID: true,
     userID: true,
     createdAt: true,
     updatedAt: true,
     isDeleted: true,
 });
-export const UpdateNoteRequestSchema = z.object({
-    noteID: z.string().uuid(),
-    updates: CreateNoteRequestSchema.partial(),
+exports.UpdateNoteRequestSchema = zod_1.z.object({
+    noteID: zod_1.z.string().uuid(),
+    updates: exports.CreateNoteRequestSchema.partial(),
 });
-export const DeleteNoteRequestSchema = z.object({
-    noteID: z.string().uuid(),
+exports.DeleteNoteRequestSchema = zod_1.z.object({
+    noteID: zod_1.z.string().uuid(),
 });
-export const NoteConflictResponseSchema = z.object({
-    status: z.literal('conflict'),
-    serverEntity: NoteSchema,
-    clientEntity: NoteSchema,
+exports.NoteConflictResponseSchema = zod_1.z.object({
+    status: zod_1.z.literal('conflict'),
+    serverEntity: schemas_1.NoteSchema,
+    clientEntity: schemas_1.NoteSchema,
 });
+//# sourceMappingURL=notes.contract.js.map
