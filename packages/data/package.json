@@ -2,109 +2,16 @@
   "name": "@sphere/data",
   "version": "1.0.0",
   "private": true,
-  "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
-    },
-    "./*": {
-      "types": "./dist/*.d.ts",
-      "default": "./dist/*.js"
-    },
-    "./auth": {
-      "types": "./dist/auth/index.d.ts",
-      "default": "./dist/auth/index.js"
-    },
-    "./auth/*": {
-      "types": "./dist/auth/*.d.ts",
-      "default": "./dist/auth/*.js"
-    },
-    "./tasks": {
-      "types": "./dist/tasks/index.d.ts",
-      "default": "./dist/tasks/index.js"
-    },
-    "./tasks/*": {
-      "types": "./dist/tasks/*.d.ts",
-      "default": "./dist/tasks/*.js"
-    },
-    "./appointments": {
-      "types": "./dist/appointments/index.d.ts",
-      "default": "./dist/appointments/index.js"
-    },
-    "./appointments/*": {
-      "types": "./dist/appointments/*.d.ts",
-      "default": "./dist/appointments/*.js"
-    },
-    "./events": {
-      "types": "./dist/events/index.d.ts",
-      "default": "./dist/events/index.js"
-    },
-    "./events/*": {
-      "types": "./dist/events/*.d.ts",
-      "default": "./dist/events/*.js"
-    },
-    "./meetings": {
-      "types": "./dist/meetings/index.d.ts",
-      "default": "./dist/meetings/index.js"
-    },
-    "./meetings/*": {
-      "types": "./dist/meetings/*.d.ts",
-      "default": "./dist/meetings/*.js"
-    },
-    "./notes": {
-      "types": "./dist/notes/index.d.ts",
-      "default": "./dist/notes/index.js"
-    },
-    "./notes/*": {
-      "types": "./dist/notes/*.d.ts",
-      "default": "./dist/notes/*.js"
-    },
-    "./calendar": {
-      "types": "./dist/calendar/index.d.ts",
-      "default": "./dist/calendar/index.js"
-    },
-    "./calendar/*": {
-      "types": "./dist/calendar/*.d.ts",
-      "default": "./dist/calendar/*.js"
-    },
-    "./chat": {
-      "types": "./dist/chat/index.d.ts",
-      "default": "./dist/chat/index.js"
-    },
-    "./chat/*": {
-      "types": "./dist/chat/*.d.ts",
-      "default": "./dist/chat/*.js"
-    },
-    "./analytics": {
-      "types": "./dist/analytics/index.d.ts",
-      "default": "./dist/analytics/index.js"
-    },
-    "./analytics/*": {
-      "types": "./dist/analytics/*.d.ts",
-      "default": "./dist/analytics/*.js"
-    },
-    "./settings": {
-      "types": "./dist/settings/index.d.ts",
-      "default": "./dist/settings/index.js"
-    },
-    "./settings/*": {
-      "types": "./dist/settings/*.d.ts",
-      "default": "./dist/settings/*.js"
-    },
-    "./database": {
-      "types": "./dist/database/index.d.ts",
-      "default": "./dist/database/index.js"
-    },
-    "./database/*": {
-      "types": "./dist/database/*.d.ts",
-      "default": "./dist/database/*.js"
     }
   },
   "scripts": {
-    "build": "tsc --build",
+    "build": "tsc",
     "dev": "tsc --watch",
     "test": "jest",
     "lint": "eslint src --ext .ts"

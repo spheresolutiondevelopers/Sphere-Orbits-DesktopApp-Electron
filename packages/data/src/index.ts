@@ -19,3 +19,5 @@ export * from './chat';
 export * from './analytics';
 export * from './settings';
 export * from './database';
+export { TokenStore } from './auth/TokenStore';
+export { OAuthClient } from './auth/OAuthClient';
