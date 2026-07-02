@@ -1,12 +1,22 @@
 import { app, BrowserWindow, ipcMain, protocol } from 'electron';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import { DatabaseClient } from '@sphere/data';
-import { AuthRepository, TaskRepository, AppointmentRepository, EventRepository, MeetingRepository, NotesRepository, CalendarRepository, ChatRepository, AnalyticsRepository, SettingsRepository } from '@sphere/data';
-import { TokenStore } from '@sphere/data';
-import { OAuthClient } from '@sphere/data';
+import {
+  AuthRepository,
+  TaskRepository,
+  AppointmentRepository,
+  EventRepository,
+  MeetingRepository,
+  NotesRepository,
+  CalendarRepository,
+  ChatRepository,
+  AnalyticsRepository,
+  SettingsRepository,
+  TokenStore,
+  OAuthClient,
+} from '@sphere/data';
 import { registerIpcHandlers } from './ipc';
-import { createMainWindow, createSettingsWindow } from './windows';
+import { createMainWindow } from './windows';
 import { setupMenu } from './menu';
 import { setupTray } from './tray';
 import { SyncService } from './sync/SyncService';
@@ -16,6 +26,11 @@ const isDev = process.env.NODE_ENV === 'development';
 const userDataPath = app.getPath('userData');
 const dbPath = path.join(userDataPath, 'sphere.db');
 
+// ✅ Register custom protocols BEFORE app is ready
+protocol.registerSchemesAsPrivileged([
+  { scheme: 'sphere', privileges: { secure: true, standard: true } },
+]);
+
 // Single instance lock
 const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) {
@@ -23,7 +38,6 @@ if (!gotTheLock) {
 }
 
 let mainWindow: BrowserWindow | null = null;
-let settingsWindow: BrowserWindow | null = null;
 let dbClient: DatabaseClient;
 let syncService: SyncService;
 
@@ -98,11 +112,6 @@ app.whenReady().then(() => {
       mainWindow.focus();
     }
   });
-
-  // Register custom protocols if needed
-  protocol.registerSchemesAsPrivileged([
-    { scheme: 'sphere', privileges: { secure: true, standard: true } },
-  ]);
 });
 
 // Quit when all windows are closed

@@ -10,8 +10,9 @@ import {
   ChatRepository,
   AnalyticsRepository,
   SettingsRepository,
+  TokenStore,
+  OAuthClient,
 } from '@sphere/data';
-import { TokenStore, OAuthClient } from '@sphere/data/src/auth';
 import { SyncService } from '../sync/SyncService';
 import { registerAuthHandlers } from './auth.handler';
 import { registerTaskHandlers } from './tasks.handler';
@@ -41,15 +42,34 @@ export interface IpcHandlers {
 }
 
 export function registerIpcHandlers(ipcMain: IpcMain, handlers: IpcHandlers): void {
+  // Auth handlers
   registerAuthHandlers(ipcMain, handlers.authRepo, handlers.tokenStore);
+
+  // Task handlers
   registerTaskHandlers(ipcMain, handlers.taskRepo);
+
+  // Appointment handlers
   registerAppointmentHandlers(ipcMain, handlers.appointmentRepo);
+
+  // Event handlers
   registerEventHandlers(ipcMain, handlers.eventRepo);
+
+  // Meeting handlers
   registerMeetingHandlers(ipcMain, handlers.meetingRepo);
+
+  // Note handlers
   registerNoteHandlers(ipcMain, handlers.notesRepo);
+
+  // Calendar handlers
   registerCalendarHandlers(ipcMain, handlers.calendarRepo);
+
+  // Chat handlers
   registerChatHandlers(ipcMain, handlers.chatRepo);
+
+  // Analytics handlers
   registerAnalyticsHandlers(ipcMain, handlers.analyticsRepo);
+
+  // Settings handlers
   registerSettingsHandlers(ipcMain, handlers.settingsRepo);
 
   // Sync handlers
