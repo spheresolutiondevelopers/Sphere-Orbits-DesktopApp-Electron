@@ -1,8 +1,14 @@
 {
   "name": "sphere-orbits-desktop",
   "version": "1.0.0",
+  "description": "Sphere Orbits - Desktop scheduling and planning application",
+  "author": {
+    "name": "Sphere Solutions",
+    "email": "support@sphereschedule.com"
+  },
   "private": true,
   "packageManager": "pnpm@8.15.0",
+  "main": "packages/main/dist/index.js",
   "workspaces": [
     "packages/*"
   ],
@@ -11,11 +17,20 @@
     "dev": "turbo run dev",
     "start": "electron packages/main/dist/index.js",
     "clean": "turbo run clean && rm -rf node_modules",
-    "lint": "turbo run lint"
+    "lint": "turbo run lint",
+    "postinstall": "electron-builder install-app-deps",
+    "dist": "pnpm run build && electron-builder",
+    "dist:win": "pnpm run build && electron-builder --win",
+    "pack": "pnpm run build && electron-builder --dir"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.11.1",
+    "keytar": "^7.9.0"
   },
   "devDependencies": {
     "@electron/rebuild": "^4.1.0",
     "electron": "^42.5.2",
+    "electron-builder": "^24.13.3",
     "eslint": "^9.0.0",
     "prettier": "^3.5.0",
     "turbo": "^2.5.0",

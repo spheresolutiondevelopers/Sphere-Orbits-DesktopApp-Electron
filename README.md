@@ -510,7 +510,9 @@ pnpm run pack
 pnpm run dist
 ```
 
-The built artifacts will be in `dist/` at the root.
+The built artifacts will be generated in the `release/` directory.
+
+> 📖 For an in-depth step-by-step walkthrough, native dependency troubleshooting, code signing, and CI/CD pipelines, see the [Executable & Installer Build Guide](BUILD_GUIDE.md).
 
 ---
 

@@ -1,24 +1,53 @@
 appId: com.sphere.orbits
 productName: Sphere Orbits
+copyright: Copyright © 2025 Sphere Solutions
+
 directories:
   output: release
   buildResources: build
+
+asar: true
+asarUnpack:
+  - "**/*.node"
+npmRebuild: true
+
 files:
   - packages/main/dist/**/*
   - packages/preload/dist/**/*
   - packages/renderer/dist/**/*
-  - node_modules/**/*
+  - packages/data/dist/**/*
+  - packages/domain/dist/**/*
+  - packages/shared/dist/**/*
+  - public/**/*
+  - "!**/*.map"
+  - "!**/*.ts"
+
 extraResources:
   - from: packages/main/src/database/migrations
     to: database/migrations
     filter:
       - "*.sql"
+
 win:
-  target: nsis
+  target:
+    - target: nsis
+      arch:
+        - x64
   icon: build/icon.ico
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  deleteAppDataOnUninstall: false
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Sphere Orbits
+
 mac:
   target: dmg
   icon: build/icon.icns
+
 linux:
   target: AppImage
   icon: build/icon.png

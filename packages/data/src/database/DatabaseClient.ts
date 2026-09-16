@@ -76,16 +76,24 @@ export class DatabaseClient {
     const appliedNames = new Set(applied.map((row) => row.name));
 
     // Get the correct path for migrations
-    let migrationsDir: string;
-    try {
-      migrationsDir = path.join(__dirname, 'migrations');
-    } catch {
-      // Fallback for when __dirname is not available
-      migrationsDir = path.join(process.cwd(), 'packages/data/src/database/migrations');
-    }
+    const candidates = [
+      (process as any).resourcesPath ? path.join((process as any).resourcesPath, 'database', 'migrations') : '',
+      path.join(process.cwd(), 'packages', 'main', 'src', 'database', 'migrations'),
+      path.join(process.cwd(), 'packages', 'data', 'src', 'database', 'migrations'),
+      path.join(__dirname, 'migrations'),
+      path.join(__dirname, '..', '..', '..', 'main', 'src', 'database', 'migrations'),
+    ].filter(Boolean);
 
-    if (!fs.existsSync(migrationsDir)) {
-      fs.mkdirSync(migrationsDir, { recursive: true });
+    const migrationsDir = candidates.find((dir) => {
+      try {
+        return fs.existsSync(dir);
+      } catch {
+        return false;
+      }
+    });
+
+    if (!migrationsDir) {
+      console.warn('Migrations directory not found, skipping migrations.');
       return;
     }
 

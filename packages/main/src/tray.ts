@@ -6,7 +6,7 @@ let tray: Tray | null = null;
 export function setupTray(mainWindow: BrowserWindow | null): void {
   if (tray) return;
 
-  const iconPath = path.join(process.cwd(), 'public/icons/icon.png');
+  const iconPath = path.join(app.getAppPath(), 'public/icons/icon.png');
   const icon = nativeImage.createFromPath(iconPath);
   if (icon.isEmpty()) {
     const fallbackIcon = nativeImage.createEmpty();

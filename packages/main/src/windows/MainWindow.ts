@@ -1,8 +1,9 @@
-import { BrowserWindow, BrowserWindowConstructorOptions, screen } from 'electron';
+import { app, BrowserWindow, BrowserWindowConstructorOptions, screen } from 'electron';
 import path from 'path';
 
 export function createMainWindow(isDev: boolean): BrowserWindow {
   const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+  const appPath = app.getAppPath();
 
   const options: BrowserWindowConstructorOptions = {
     width: Math.min(1400, width * 0.9),
@@ -11,9 +12,9 @@ export function createMainWindow(isDev: boolean): BrowserWindow {
     minHeight: 600,
     title: 'Sphere Schedule',
     backgroundColor: '#0F0E1C',
-    icon: path.join(process.cwd(), 'public/icons/icon.png'),
+    icon: path.join(appPath, 'public/icons/icon.png'),
     webPreferences: {
-      preload: path.join(process.cwd(), 'packages/preload/dist/index.js'),
+      preload: path.join(appPath, 'packages/preload/dist/index.js'),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
@@ -32,14 +33,28 @@ export function createMainWindow(isDev: boolean): BrowserWindow {
     win.loadURL(devUrl);
     win.webContents.openDevTools({ mode: 'detach' });
   } else {
-    const indexPath = path.join(process.cwd(), 'packages/renderer/dist/index.html');
-    win.loadFile(indexPath);
+    const indexPath = path.join(appPath, 'packages/renderer/dist/index.html');
+    win.loadFile(indexPath).catch((err) => {
+      console.error('Failed to load index.html:', err);
+    });
   }
 
-  win.on('ready-to-show', () => {
+  win.webContents.on('did-fail-load', (_, errorCode, errorDescription) => {
+    console.error('Failed to load renderer page:', errorCode, errorDescription);
+  });
+
+  win.once('ready-to-show', () => {
     win.show();
     win.focus();
   });
+
+  // Safety timeout: ensure window is revealed even if ready-to-show delayed
+  setTimeout(() => {
+    if (!win.isDestroyed() && !win.isVisible()) {
+      win.show();
+      win.focus();
+    }
+  }, 2500);
 
   return win;
 }

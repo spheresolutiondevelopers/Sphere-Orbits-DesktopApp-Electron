@@ -1,6 +1,5 @@
 import { IpcMain } from 'electron';
-import { AuthRepository } from '@sphere/data';
-import { TokenStore } from '@sphere/data/src/auth';
+import { AuthRepository, TokenStore } from '@sphere/data';
 import { LoginRequestSchema, SignupRequestSchema, ValidateTokenRequestSchema } from '@sphere/shared';
 import { IPC_CHANNELS } from '@sphere/shared';
 

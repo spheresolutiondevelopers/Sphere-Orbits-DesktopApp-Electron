@@ -1,8 +1,9 @@
-import { BrowserWindow, BrowserWindowConstructorOptions, screen } from 'electron';
+import { app, BrowserWindow, BrowserWindowConstructorOptions, screen } from 'electron';
 import path from 'path';
 
 export function createSettingsWindow(parentWindow: BrowserWindow | null): BrowserWindow {
   const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+  const appPath = app.getAppPath();
 
   const options: BrowserWindowConstructorOptions = {
     width: Math.min(600, width * 0.6),
@@ -13,9 +14,9 @@ export function createSettingsWindow(parentWindow: BrowserWindow | null): Browse
     modal: true,
     title: 'Settings – Sphere',
     backgroundColor: '#0F0E1C',
-    icon: path.join(process.cwd(), 'public/icons/icon.png'),
+    icon: path.join(appPath, 'public/icons/icon.png'),
     webPreferences: {
-      preload: path.join(process.cwd(), 'packages/preload/dist/index.js'),
+      preload: path.join(appPath, 'packages/preload/dist/index.js'),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
@@ -30,7 +31,7 @@ export function createSettingsWindow(parentWindow: BrowserWindow | null): Browse
     const devUrl = process.env.RENDERER_DEV_URL || 'http://localhost:5173/#/settings';
     win.loadURL(devUrl);
   } else {
-    const indexPath = path.join(process.cwd(), 'packages/renderer/dist/index.html');
+    const indexPath = path.join(appPath, 'packages/renderer/dist/index.html');
     win.loadFile(indexPath, { hash: 'settings' });
   }
 

@@ -57,4 +57,11 @@ export interface IAuthRepository {
    * @returns Result containing User or error
    */
   getCurrentUser(token: string): Promise<Result<User, Error>>;
+
+  /**
+   * Returns the currently active local session without any network call.
+   * Used for instant offline login-state restoration on app start.
+   * @returns Result containing { user, token } if a valid session exists, null otherwise
+   */
+  getSession(): Promise<Result<{ user: User; token: string } | null, Error>>;
 }

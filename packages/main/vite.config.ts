@@ -14,8 +14,6 @@ export default defineConfig({
         'electron',
         'better-sqlite3',
         'keytar',
-        'electron-store',
-        'axios',
         'path',
         'fs',
         'crypto',
@@ -25,9 +23,6 @@ export default defineConfig({
         'node:path',
         'node:fs',
         'node:process',
-        '@sphere/data',
-        '@sphere/domain',
-        '@sphere/shared',
       ],
     },
     target: 'node18',
@@ -42,6 +37,5 @@ export default defineConfig({
   },
   define: {
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
-    '__dirname': '""', // Add this to prevent __dirname errors
   },
 });

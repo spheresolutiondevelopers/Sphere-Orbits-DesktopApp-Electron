@@ -93,7 +93,11 @@ function initServices() {
 
 // App ready
 app.whenReady().then(() => {
-  initServices();
+  try {
+    initServices();
+  } catch (err) {
+    console.error('Failed to initialize services:', err);
+  }
 
   // Create main window
   mainWindow = createMainWindow(isDev);

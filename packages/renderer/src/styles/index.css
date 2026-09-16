@@ -3,33 +3,73 @@
 @tailwind utilities;
 
 @layer base {
+  /* ── Light theme (default) ── */
+  :root {
+    --bg: #F0EFFF;
+    --bg-2: #E8E6FF;
+    --bg-3: #FFFFFF;
+    --card: #FFFFFF;
+    --card-2: #F8F7FF;
+    --card-3: #EEEcFF;
+    --border: rgba(124, 108, 248, 0.12);
+    --border-2: rgba(124, 108, 248, 0.22);
+    --text: #1A1733;
+    --text-2: #6B6897;
+    --text-3: #B4B2D4;
+  }
+
+  /* ── Dark theme ── */
+  [data-theme="dark"] {
+    --bg: #080712;
+    --bg-2: #0F0E1C;
+    --bg-3: #141320;
+    --card: #1A1930;
+    --card-2: #201F38;
+    --card-3: #262440;
+    --border: rgba(255, 255, 255, 0.07);
+    --border-2: rgba(255, 255, 255, 0.12);
+    --text: #F0EFFF;
+    --text-2: #9896C4;
+    --text-3: #5E5C88;
+  }
+
+  /* ── Light theme explicit ── */
+  [data-theme="light"] {
+    --bg: #F0EFFF;
+    --bg-2: #E8E6FF;
+    --bg-3: #FFFFFF;
+    --card: #FFFFFF;
+    --card-2: #F8F7FF;
+    --card-3: #EEEcFF;
+    --border: rgba(124, 108, 248, 0.12);
+    --border-2: rgba(124, 108, 248, 0.22);
+    --text: #1A1733;
+    --text-2: #6B6897;
+    --text-3: #B4B2D4;
+  }
+
+  /* ── Apply variables globally ── */
   * {
-    /* Use actual border color instead of non-existent border-border */
-    border-color: rgba(255, 255, 255, 0.1);
+    border-color: var(--border);
   }
+
   body {
-    @apply bg-sphere-darker text-white font-sans antialiased;
-  }
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-  ::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  ::-webkit-scrollbar-thumb {
-    @apply bg-white/10 rounded-full;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    @apply bg-white/20;
+    background: var(--bg);
+    color: var(--text);
   }
 }
 
-@layer components {
-  .glass {
-    @apply bg-white/5 backdrop-blur-sm border border-white/10;
-  }
-  .glass-panel {
-    @apply bg-sphere-panel/80 backdrop-blur-sm border border-white/5;
-  }
+@layer utilities {
+  /* ── Theme-aware utility classes ── */
+  .bg-theme        { background: var(--bg); }
+  .bg-theme-2      { background: var(--bg-2); }
+  .bg-theme-card   { background: var(--card); }
+  .bg-theme-card-2 { background: var(--card-2); }
+
+  .text-theme      { color: var(--text); }
+  .text-theme-2    { color: var(--text-2); }
+  .text-theme-3    { color: var(--text-3); }
+
+  .border-theme    { border-color: var(--border); }
+  .border-theme-2  { border-color: var(--border-2); }
 }
